@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <title>Crypto</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script>
+    	function resizeTextArea(area) {
+    		area.rows = area.value.length/(area.cols+2) + 1;
+    	}
+    </script>
+  </head>
+  <body>
+    <div class='div-content'>
+    	<h1>Crypto</h1>
+    	<p>
+    		<form enctype='application/x-www-form-urlencoded' action='/message' method='post'>
+    			<textarea autofocus='true' id='message' name='message' placeholder='message' required='true' maxlength='1024' rows='1' cols='30' onkeypress='resizeTextArea(this)'></textarea>
+    		</form>
+    	</p>
+    </div>
+  </body>
+</html>
