@@ -86,7 +86,6 @@ function getMain(req,res) {
 //Handle POST /message
 function postMessage(req,res) {
 	console.log("POST /message");
-	
 }
 
 //Handle GET /message
