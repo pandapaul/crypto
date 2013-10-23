@@ -85,13 +85,22 @@ function getMain(req,res) {
 
 //Handle POST /message
 function postMessage(req,res) {
-	console.log("POST /message");
+	var message = new Message(req.body.message);
+	message.encrypt();
+
+	/*
+	Eventually, something else should happen here to either cut down on
+	duplicate messages or provide a limited lifespan for the entry.
+	*/
+	store(message, function() {
+		res.sendfile('message.html');
+	});
 }
 
 //Handle GET /message
 function getMessage(req,res) {
 	console.log("GET /message");
-	
+	res.end();
 }
 
 //Handle GET styles.css
@@ -105,16 +114,13 @@ function pageNotFound(req,res,next) {
 }
 
 /*
-* Routes
+* Routes and middleware
 */
+app.use(express.bodyParser());
 app.get('/', getMain);
 app.get('/styles.css', getStyles);
 app.post('/message', postMessage);
 app.get('/message', getMessage);
-
-/*
-* Bind middleware 
-*/
 app.use(express.favicon('favicon.ico'));
 app.use(pageNotFound);
 
