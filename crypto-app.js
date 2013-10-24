@@ -83,12 +83,11 @@ function HTMLTemplate() {
 	"<link rel='stylesheet' type='text/css' href='styles.css'>" +
 	"</head><body><div class = 'content'>";
 	var foot = "</div></body></html>";
-
 	this.title = '';
 	this.content = '';
 
 	this.toString = function() {
-		var fullpage = head + title + content + foot;
+		var fullpage = head + '<h1>' + this.title + '</h1>' + this.content + foot;
 		return fullpage;
 	};
 }
