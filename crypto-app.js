@@ -77,6 +77,21 @@ function retrieve(id, callback) {
 	});
 }
 
+//HTML page object constructor
+function HTMLTemplate() {
+	var head = "<html><head><title>Crypto</title>" +
+	"<link rel='stylesheet' type='text/css' href='styles.css'>" +
+	"</head><body><div class = 'content'>";
+	var foot = "</div></body></html>";
+
+	this.title = '';
+	this.content = '';
+
+	this.toString = function() {
+		var fullpage = head + title + content + foot;
+		return fullpage;
+	};
+}
 
 //Handle GET root
 function getMain(req,res) {
