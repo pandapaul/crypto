@@ -99,8 +99,7 @@ function postMessage(req,res) {
 
 //Handle GET /message
 function getMessage(req,res) {
-	console.log("GET /message");
-	res.end();
+	res.sendfile('message.html');
 }
 
 //Handle GET styles.css
