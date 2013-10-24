@@ -39,6 +39,7 @@ function Message(text) {
 		doc['text'] = this.text;
 		doc['encryptedText'] = this.encryptedText;
 		doc['hint'] = this.hint;
+		doc['date'] = new Date();
 		return doc;
 	};
 	this.createFromDoc = function(doc) {
@@ -67,29 +68,19 @@ function store(message, callback) {
 
 //Retrieve a message from the mongo db
 function retrieve(id, callback) {
+	try {
+		id = new ObjectID(id);
+	} catch (e){
+		callback(null);
+	}
 	MongoClient.connect(dbAddress, function(err, db) {
 		if(err) throw err;
 		var collection = db.collection('messages');
-		var doc = collection.findOne({_id:id}, function(err, item) {
+		collection.findOne({_id:id}, function(err, item) {
 			callback(item);
 			db.close();
 		});
 	});
-}
-
-//HTML page object constructor
-function HTMLTemplate() {
-	var head = "<html><head><title>Crypto</title>" +
-	"<link rel='stylesheet' type='text/css' href='styles.css'>" +
-	"</head><body><div class = 'content'>";
-	var foot = "</div></body></html>";
-	this.title = '';
-	this.content = '';
-
-	this.toString = function() {
-		var fullpage = head + '<h1>' + this.title + '</h1>' + this.content + foot;
-		return fullpage;
-	};
 }
 
 //Handle GET root
@@ -99,20 +90,29 @@ function getMain(req,res) {
 
 //Handle POST /message
 function postMessage(req,res) {
+	console.log(req.body);
 	var message = new Message(req.body.message);
 	message.encrypt();
-
-	/*
-	Eventually, something else should happen here to either cut down on
-	duplicate messages or provide a limited lifespan for the entry.
-	*/
 	store(message, function() {
-		res.sendfile('message.html');
+		res.json(message);
 	});
 }
 
 //Handle GET /message
 function getMessage(req,res) {
+	console.log("GET " + req.query.id);
+	if(req.query.id) {
+		retrieve(req.query.id,function(doc) {
+			console.log(doc);
+			res.json(doc);
+		});
+	} else {
+		res.sendfile('404.html');
+	}
+}
+
+//Handle GET /view
+function getView(req,res) {
 	res.sendfile('message.html');
 }
 
@@ -134,6 +134,7 @@ app.get('/', getMain);
 app.get('/styles.css', getStyles);
 app.post('/message', postMessage);
 app.get('/message', getMessage);
+app.get('/view', getView);
 app.use(express.favicon('favicon.ico'));
 app.use(pageNotFound);
 

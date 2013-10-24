@@ -2,20 +2,34 @@
   <head>
     <title>Crypto</title>
     <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script>
-    	function resizeTextArea(area) {
-    		area.rows = area.value.length/(area.cols+2) + 1;
-    	}
+      function setup() {
+        $('#messageForm').submit(function() {
+            $.post("/message",{'message': $('#message').val()},function(data) {
+              if(data.id) {
+                window.location.replace('/view?id='+data.id);
+              } else {
+                $('#header').html('Unable to encrypt');
+              }
+            });
+            return false;
+          });
+        }
+
+      $(document).ready(setup);
     </script>
   </head>
   <body>
     <div class='content'>
-    	<h1>Crypto</h1>
+    	<h1 id='header'>Crypto</h1>
     	<p>
-      		<form enctype='application/x-www-form-urlencoded' action='/message' method='post'>
-      			<textarea autofocus='true' id='message' name='message' placeholder='message' required='true' maxlength='1024' rows='1' cols='30' onkeypress='resizeTextArea(this)'></textarea>
+      		<form id='messageForm'>
+      			<input type='text' autofocus='true' id='message' placeholder='message' required='true' maxlength='1024' class='message'></textarea>
             <br><input type='submit' class='submit' value='Encrypt'>
+          </form>
     	</p>
+      </div>
     </div>
   </body>
 </html>

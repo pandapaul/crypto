@@ -1,6 +1,6 @@
 body {
   font-family: 'Lucida Grande', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  padding: 100px;
+  padding: 70px;
   font-size: 13px;
   background: #444444;
   color: #F0F6FF;
@@ -15,7 +15,7 @@ div.content {
   background: #212121;
   margin: 0 auto;
   padding: 5px;
-  width: 300px;
+  width: 500px;
   text-align: center;
   /* border-radius */
   -webkit-border-radius: 5px;
@@ -29,11 +29,40 @@ div.content {
 
 div.message {
   margin: 10px;
-  font-size:18;
+  font-size: 20px;
+}
+
+div.hint {
+  margin: 10px;
+  font-size: 14px;
 }
 
 form {
   margin-bottom: 40px;
+}
+
+table {
+  text-align: center;
+  margin: 0 auto;
+}
+
+td.letterBox {
+  width: 18px;
+  padding: 0px;
+  margin: 0px;
+  text-align: center;
+}
+
+input.letterBox {
+  width: 16px;
+  padding: 0px;
+  margin: 0px;
+  text-align: center;
+}
+
+input.message {
+  width: 92%;
+  margin: 10px;
 }
 
 input.submit {

@@ -4,8 +4,96 @@
     <link rel="stylesheet" type="text/css" href="styles.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script>
+      var charReg = /[a-zA-Z]/;
+
       function setup() {
-        $('.message').html('');
+        var id = getURLParameter('id');
+        $.get('/message?id='+id,function(data) {
+          var message = $('#encryptedMessage');
+          if(data) {
+            var tableCols = 27;
+            var text = wrapText(data.encryptedText,tableCols);
+            var tableRows = Math.ceil(text.length/tableCols);
+            var tableString = '';
+            tableString += '<table><tbody>';
+            for(var r=0;r<tableRows;r++) {
+              tableString += '<tr>';
+              for(var c=0;c<tableCols;c++) {
+                tableString += '<td class="letterBox">';
+                var letter = getLetter(text,r,c,tableCols);
+                if(charReg.test(letter)) {
+                  tableString += '<input class="letterBox letter'+letter+'" placeholder="'+letter+'" maxlength="1">';
+                }
+                tableString += '</td>';
+              }
+              tableString += '</tr><tr>';
+              for(var c=0;c<tableCols;c++) {
+                tableString += '<td class="letterBox">';
+                tableString += getLetter(text,r,c,tableCols);
+                tableString += '</td>';
+              }
+              tableString += '</tr>';
+            }
+            tableString += '</tbody></table>';
+            message.append(tableString);
+            $('#hint').html(data.hint);
+            $('#formDiv').css('display','block');
+            $('input.letterBox').keyup(function(box) {
+              var identifier = 'input.letter'+this.placeholder;
+              $(identifier).val(this.value);
+            });
+          } else {
+            message.html('message expired');
+          }
+        });
+      }
+
+      function wrapText(text,lineLength) {
+        for(var i=0;i<text.length;i++) {
+          if((i+1)%lineLength===0) {
+            if(text[i] !== ' ') {
+              var replacementChar = ' ';
+              if(text[i+1] && charReg.test(text[i+1])) {
+                if(text[i-1] && charReg.test(text[i-1])) {
+                  //This char is in the middle of a word
+                  text = text.substring(0,i) + '-' + text.substring(i);
+                } else {
+                  text = text.substring(0,i) + ' ' + text.substring(i);
+                }
+              }
+            }
+          }
+          else if(i%lineLength===0) {
+            if(text[i] === ' ') {
+              text = text.substring(0,i) + text.substring(i+1);
+            }
+          }
+        }
+        return text;
+      }
+
+      function getLetter(text, r, c, tableCols) {
+        var letter = text[(r)*tableCols+c];
+        return letter?letter:' ';
+      }
+
+      function buildCryptoBlock(letter,i) {
+        if(letter===' ') {
+          return '';
+        }
+        var htmlstring = '';
+        htmlstring += '<table><tr><td>';
+        htmlstring += '<input class="letterBox" maxlength="1" placeholder="'+letter+'" id="letter'+i+'">';
+        htmlstring += '</td><tr><td>';
+        htmlstring += letter;
+        htmlstring += '</td></table>'
+        return htmlstring;
+      }
+
+      function getURLParameter(name) {
+        return decodeURI(
+        (RegExp(
+          name + '=' + '(.+?)(&|$)').exec(location.search)||[,null])[1]);
       }
 
       $(document).ready(setup);
@@ -15,10 +103,12 @@
     <div class='content'>
     	<h1>Message</h1>
     	<p>
-        <div class='message'>no message to read</div>
-    		<form enctype='application/x-www-form-urlencoded' action='/guess' method='post'>
-    			<textarea autofocus='true' id='guess' name='guess' placeholder='guess' required='true' maxlength='1024' rows='1' cols='30'></textarea>
-          <br><input type='submit' class='submit' value='Guess'>
+        <div id='encryptedMessage' class='message'></div>
+        <div id='hint' class='hint'></div>
+        <div id='formDiv' style='display:none'>
+          <br>
+    		  <form><input type='submit' class='submit' value='Guess'></form>
+        </div>
     	</p>
     </div>
   </body>
