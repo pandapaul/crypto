@@ -15,7 +15,7 @@ div.content {
   background: #212121;
   margin: 0 auto;
   padding: 5px;
-  width: 500px;
+  width: 502px;
   text-align: center;
   /* border-radius */
   -webkit-border-radius: 5px;
@@ -50,7 +50,7 @@ table {
 td.letterBox {
   width: 18px;
   padding: 0px;
-  margin: 0px;
+  margin: 0 auto;
   text-align: center;
 }
 

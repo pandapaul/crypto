@@ -11,10 +11,11 @@
         $.get('/message?id='+id,function(data) {
           var message = $('#encryptedMessage');
           if(data) {
-            var tableCols = 27;
+            var tableCols = 24;
             var text = wrapText(data.encryptedText,tableCols);
             var tableRows = Math.ceil(text.length/tableCols);
             var tableString = '';
+            var boxes = 0;
             tableString += '<table><tbody>';
             for(var r=0;r<tableRows;r++) {
               tableString += '<tr>';
@@ -22,7 +23,10 @@
                 tableString += '<td class="letterBox">';
                 var letter = getLetter(text,r,c,tableCols);
                 if(charReg.test(letter)) {
-                  tableString += '<input class="letterBox letter'+letter+'" name="'+letter+'" maxlength="1">';
+                  tableString += '<input class="letterBox letter'+letter+'" name="'+letter+'" maxlength="1" id="'+boxes+'">';
+                  boxes++;
+                } else {
+                  tableString += letter;
                 }
                 tableString += '</td>';
               }
@@ -38,9 +42,24 @@
             message.append(tableString);
             $('#hint').html(data.hint);
             $('#formDiv').css('display','block');
-            $('input.letterBox').keyup(function(box) {
-              var identifier = 'input.letter'+this.name;
-              $(identifier).val(this.value);
+            $('input.letterBox').keyup(function(e) {
+              switch(e.which) {
+                  case 37:
+                    var prevBox = $('#'+(parseInt(this.id)-1));
+                    if(prevBox) {
+                      prevBox.focus();
+                    }
+                    break;
+                  case 39:
+                    var nextBox = $('#'+(parseInt(this.id)+1));
+                    if(nextBox) {
+                      nextBox.focus();
+                    }
+                    break;
+                  default:
+                    var identifier = 'input.letter'+this.name;
+                    $(identifier).val(this.value);
+                }
             });
           } else {
             message.html('message expired');
