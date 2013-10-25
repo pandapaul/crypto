@@ -32,7 +32,7 @@ function Message(text) {
 			}
 		}
 		var randomHintIndex = Math.floor(Math.random()*cryptoChars.length);
-		this.hint = "Change " + cryptoChars[randomHintIndex] + " to " + unique[randomHintIndex];
+		this.hint = cryptoChars[randomHintIndex] + " = " + unique[randomHintIndex];
 	};
 	this.createDoc = function() {
 		var doc = {};
@@ -90,7 +90,6 @@ function getMain(req,res) {
 
 //Handle POST /message
 function postMessage(req,res) {
-	console.log(req.body);
 	var message = new Message(req.body.message);
 	message.encrypt();
 	store(message, function() {
@@ -100,10 +99,8 @@ function postMessage(req,res) {
 
 //Handle GET /message
 function getMessage(req,res) {
-	console.log("GET " + req.query.id);
 	if(req.query.id) {
 		retrieve(req.query.id,function(doc) {
-			console.log(doc);
 			res.json(doc);
 		});
 	} else {

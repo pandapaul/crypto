@@ -6,9 +6,9 @@
     <script>
       function setup() {
         $('#messageForm').submit(function() {
-            $.post("/message",{'message': $('#message').val()},function(data) {
+            $.post("/message",{'message': $('#message').val().toLowerCase()},function(data) {
               if(data.id) {
-                window.location.replace('/view?id='+data.id);
+                window.location.href = '/view?id='+data.id;
               } else {
                 $('#header').html('Unable to encrypt');
               }

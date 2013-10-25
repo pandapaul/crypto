@@ -22,7 +22,7 @@
                 tableString += '<td class="letterBox">';
                 var letter = getLetter(text,r,c,tableCols);
                 if(charReg.test(letter)) {
-                  tableString += '<input class="letterBox letter'+letter+'" placeholder="'+letter+'" maxlength="1">';
+                  tableString += '<input class="letterBox letter'+letter+'" name="'+letter+'" maxlength="1">';
                 }
                 tableString += '</td>';
               }
@@ -32,14 +32,14 @@
                 tableString += getLetter(text,r,c,tableCols);
                 tableString += '</td>';
               }
-              tableString += '</tr>';
+              tableString += '</tr><tr><td>&nbsp;</td></tr>';
             }
             tableString += '</tbody></table>';
             message.append(tableString);
             $('#hint').html(data.hint);
             $('#formDiv').css('display','block');
             $('input.letterBox').keyup(function(box) {
-              var identifier = 'input.letter'+this.placeholder;
+              var identifier = 'input.letter'+this.name;
               $(identifier).val(this.value);
             });
           } else {
@@ -104,9 +104,9 @@
     	<h1>Message</h1>
     	<p>
         <div id='encryptedMessage' class='message'></div>
-        <div id='hint' class='hint'></div>
         <div id='formDiv' style='display:none'>
           <br>
+          <div id='hint' class='hint'></div>
     		  <form><input type='submit' class='submit' value='Guess'></form>
         </div>
     	</p>
