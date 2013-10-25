@@ -1,7 +1,8 @@
 crypto
 ======
 
-[![Nodejitsu Deploy Status Badges](https://webhooks.nodejitsu.com/pandapaul/hello-world-flatiron-api.png)](https://webops.nodejitsu.com#pandapaul/hello-world-flatiron-api)
+[![Nodejitsu Deploy Status Badges](https://webhooks.nodejitsu.com/pandapaul/pandapaul-crypto)]
+(https://webops.nodejitsu.com#pandapaul/pandapaul-crypto)
 
 Crypto is a small web project built using NodeJS, ExpressJS, JQuery, and a little bit of HTML.
 It computes human-solvable, encrypted messages for entertaining and educational purposes.
