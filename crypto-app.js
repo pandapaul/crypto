@@ -3,7 +3,7 @@ var
 	app = express(),
 	MongoClient = require('mongodb').MongoClient,
 	ObjectID = require('mongodb').ObjectID,
-	dbAddress = 'mongodb://127.0.0.1:27017/crypto';
+	dbAddress = 'mongodb://user:pass@ds047008.mongolab.com:47008/nodejitsu_pandapaul_nodejitsudb1745758801';
 
 //Message object constructor
 function Message(text) {
@@ -136,6 +136,6 @@ app.use(express.favicon('favicon.ico'));
 app.use(pageNotFound);
 
 //Listen
-var listenPort = 80;
+var listenPort = 8000;
 app.listen(listenPort);
 console.log('Listening on port ' + listenPort);
