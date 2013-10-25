@@ -3,8 +3,8 @@ var
 	app = express(),
 	MongoClient = require('mongodb').MongoClient,
 	ObjectID = require('mongodb').ObjectID,
-	// dbAddress = 'mongodb://user:pass@ds047008.mongolab.com:47008/nodejitsu_pandapaul_nodejitsudb1745758801';
-	dbAddress = 'mongodb://127.0.0.1:27017/crypto';
+	dbAddress = 'mongodb://user:pass@ds047008.mongolab.com:47008/nodejitsu_pandapaul_nodejitsudb1745758801';
+	//dbAddress = 'mongodb://127.0.0.1:27017/crypto';
 
 //Message object constructor
 function Message(text) {
