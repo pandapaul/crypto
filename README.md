@@ -1,7 +1,7 @@
 crypto
 ======
 
-[![Nodejitsu Deploy Status Badges](https://webhooks.nodejitsu.com/pandapaul/pandapaul-crypto)]
+[![Nodejitsu Deploy Status Badges](https://webhooks.nodejitsu.com/pandapaul/pandapaul-crypto.png)]
 (https://webops.nodejitsu.com#pandapaul/pandapaul-crypto)
 
 Crypto is a small web project built using NodeJS, ExpressJS, JQuery, and a little bit of HTML.
