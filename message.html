@@ -12,11 +12,10 @@
 
         function getGuess() {
           $.get('/guess?id='+id,function(data) {
-            console.log(data);
-            if(data.guess && data.guess !== guess) {
+            if(data && (data !== guess)) {
               $('input.letterBox').each(function(index) {
-                if(data.guess[this.id]!==" ") {
-                  this.value = data.guess[this.id];
+                if(data[this.id]!==" " && data[this.id]!==this.value) {
+                  $(this).val(data[this.id]);
                 }
               });
             }
@@ -107,7 +106,7 @@
           }
         });
 
-        window.setInterval(getGuess,1000);
+        setInterval(getGuess,3000);
       }
 
       function wrapText(text,lineLength) {

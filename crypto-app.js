@@ -143,7 +143,7 @@ function postGuess(req,res) {
 
 //Handle GET /guess
 function getGuess(req,res) {
-	if(req.body.id) {
+	if(req.query.id) {
 		retrieve(req.query.id,function(doc) {
 			res.json(doc['guess']);
 		});
