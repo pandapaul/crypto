@@ -77,19 +77,6 @@
         return letter?letter:' ';
       }
 
-      function buildCryptoBlock(letter,i) {
-        if(letter===' ') {
-          return '';
-        }
-        var htmlstring = '';
-        htmlstring += '<table><tr><td>';
-        htmlstring += '<input class="letterBox" maxlength="1" placeholder="'+letter+'" id="letter'+i+'">';
-        htmlstring += '</td><tr><td>';
-        htmlstring += letter;
-        htmlstring += '</td></table>'
-        return htmlstring;
-      }
-
       function getURLParameter(name) {
         return decodeURI(
         (RegExp(
