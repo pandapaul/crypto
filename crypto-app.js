@@ -3,7 +3,8 @@ var
 	app = express(),
 	MongoClient = require('mongodb').MongoClient,
 	ObjectID = require('mongodb').ObjectID,
-	dbAddress = 'mongodb://user:pass@ds047008.mongolab.com:47008/nodejitsu_pandapaul_nodejitsudb1745758801';
+	// dbAddress = 'mongodb://user:pass@ds047008.mongolab.com:47008/nodejitsu_pandapaul_nodejitsudb1745758801';
+	dbAddress = 'mongodb://127.0.0.1:27017/crypto';
 
 //Message object constructor
 function Message(text) {
@@ -70,8 +71,9 @@ function store(message, callback) {
 function retrieve(id, callback) {
 	try {
 		id = new ObjectID(id);
-	} catch (e){
+	} catch (e) {
 		callback(null);
+		return;
 	}
 	MongoClient.connect(dbAddress, function(err, db) {
 		if(err) throw err;
@@ -80,6 +82,23 @@ function retrieve(id, callback) {
 			callback(item);
 			db.close();
 		});
+	});
+}
+
+//Update a message in the mongo db
+function update(id, updateData) {
+	try {
+		id = new ObjectID(id);
+	} catch (e) {
+		return;
+	}
+	MongoClient.connect(dbAddress, function(err, db) {
+		if(err) throw err;
+		var collection = db.collection('messages');
+		collection.update({'_id':id},updateData, function(err,result) {
+			if(err) throw err;
+		});
+		db.close();
 	});
 }
 
@@ -113,6 +132,24 @@ function getView(req,res) {
 	res.sendfile('message.html');
 }
 
+//Handle POST /guess
+function postGuess(req,res) {
+	if(req.body.id && req.body.guess) {
+		var updateData = {$set:{guess:req.body.guess}};
+		update(req.body.id, updateData);
+	}
+	res.end();
+}
+
+//Handle GET /guess
+function getGuess(req,res) {
+	if(req.body.id) {
+		retrieve(req.query.id,function(doc) {
+			res.json(doc['guess']);
+		});
+	}
+}
+
 //Handle GET styles.css
 function getStyles(req,res) {
 	res.sendfile('styles.css');
@@ -132,6 +169,8 @@ app.get('/styles.css', getStyles);
 app.post('/message', postMessage);
 app.get('/message', getMessage);
 app.get('/view', getView);
+app.post('/guess', postGuess);
+app.get('/guess',getGuess);
 app.use(express.favicon('favicon.ico'));
 app.use(pageNotFound);
 
