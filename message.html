@@ -59,7 +59,7 @@
                 var letter = getLetter(text,r,c,tableCols);
                 if(charReg.test(letter)) {
                   var guessLetter = (guess[boxes]&&guess[boxes]!==' ')?guess[boxes]:'';
-                  tableString += '<input class="letterBox letter'+letter+'" name="'+letter+'" onFocus="this.select()" onClick="this.select()" maxlength="1" id="'+boxes+'" value="'+guessLetter+'">';
+                  tableString += '<input class="letterBox letter'+letter+'" name="'+letter+'" maxlength="1" id="'+boxes+'" value="'+guessLetter+'">';
                   boxes++;
                 } else {
                   tableString += letter;
@@ -102,12 +102,11 @@
                     postGuess();
                 }
             });
+            setInterval(getGuess,3000);
           } else {
             message.html('message expired');
           }
         });
-
-        setInterval(getGuess,3000);
       }
 
       function wrapText(text,lineLength) {

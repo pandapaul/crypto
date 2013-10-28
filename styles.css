@@ -29,7 +29,7 @@ div.content {
 
 div.message {
   margin: 10px;
-  font-size: 20px;
+  font-size: 16px;
 }
 
 div.hint {
@@ -41,6 +41,10 @@ div.hint {
 
 form {
   margin-bottom: 40px;
+}
+
+input {
+  font-family: 'Lucida Grande', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 table {
@@ -56,11 +60,12 @@ td.letterBox {
 
 input.letterBox {
   width: 16px;
-  padding: 0px;
-  margin: 0px;
+  padding: 1;
+  margin: 0;
   font-weight: bold;
   font-size: 16px;
   text-align: center;
+  border: 0;
 }
 
 input.message {
