@@ -4,7 +4,7 @@ var
 	MongoClient = require('mongodb').MongoClient,
 	ObjectID = require('mongodb').ObjectID,
 	dbAddress = 'mongodb://user:pass@ds047008.mongolab.com:47008/nodejitsu_pandapaul_nodejitsudb1745758801';
-	//dbAddress = 'mongodb://127.0.0.1:27017/crypto';
+	// dbAddress = 'mongodb://127.0.0.1:27017/crypto';
 
 //Message object constructor
 function Message(text) {
@@ -150,6 +150,14 @@ function getGuess(req,res) {
 	}
 }
 
+//Handle POST /check
+function postCheck(req,res) {
+	if(req.body.id && req.body.guess) {
+		
+	}
+	res.end();
+}
+
 //Handle GET styles.css
 function getStyles(req,res) {
 	res.sendfile('styles.css');
@@ -171,6 +179,7 @@ app.get('/message', getMessage);
 app.get('/view', getView);
 app.post('/guess', postGuess);
 app.get('/guess',getGuess);
+app.post('/check',postCheck);
 app.use(express.favicon('favicon.ico'));
 app.use(pageNotFound);
 
