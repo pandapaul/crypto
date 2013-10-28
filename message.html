@@ -15,10 +15,10 @@
           if(data.checksLeft >= 0) {
             setCheckButton(data.checksLeft);
           }
-          if(data.guess && (guess !== data.guess)) {
+          if(data.guess && (data.guess !== guess)) {
             $('input.letterBox').each(function(index) {
               if(data.guess[this.id]!==" " && data.guess[this.id]!==this.value) {
-                $(this).val(data.guess[this.id]);
+                this.value = data.guess[this.id];
               }
             });
           }
@@ -102,22 +102,20 @@
               guess = new Array(data.encryptedText.length);
             }
             var tableCols = 24;
-            var text = wrapText(data.encryptedText,tableCols);
+            var text = data.encryptedText;
             var tableRows = Math.ceil(text.length/tableCols);
             var tableString = '';
-            var boxes = -1;
             tableString += '<table><tbody>';
             for(var r=0;r<tableRows;r++) {
               tableString += '<tr>';
               for(var c=0;c<tableCols;c++) {
                 tableString += '<td class="letterBox">';
-                var letter = getLetter(text,r,c,tableCols);
-                if(letter === data.encryptedText[boxes+1]) {
-                  boxes++;
-                }
+                var letterIndex = r*tableCols+c;
+                var letter = text[letterIndex]? text[letterIndex] : ' ';
                 if(charReg.test(letter)) {
-                  var guessLetter = (guess[boxes]&&guess[boxes]!==' ')?guess[boxes]:'';
-                  tableString += '<input class="letterBox letter'+letter+'" name="'+letter+'" maxlength="1" id="'+boxes+'" value="'+guessLetter+'">';
+                  var guessLetter = (guess[letterIndex]&&(guess[letterIndex]!==' '))?guess[letterIndex]:'';
+                  var boxIndex = letterIndex;
+                  tableString += '<input class="letterBox letter'+letter+'" name="'+letter+'" maxlength="1" id="'+boxIndex+'" value="'+guessLetter+'">';
                 } else {
                   tableString += letter;
                 }
@@ -126,7 +124,9 @@
               tableString += '</tr><tr>';
               for(var c=0;c<tableCols;c++) {
                 tableString += '<td class="letterBox">';
-                tableString += getLetter(text,r,c,tableCols);
+                var letterIndex = r*tableCols+c;
+                var letter = text[letterIndex]? text[letterIndex] : ' ';
+                tableString += letter;
                 tableString += '</td>';
               }
               tableString += '</tr><tr><td>&nbsp;</td></tr>';
@@ -165,35 +165,6 @@
             message.html('message expired');
           }
         });
-      }
-
-      function wrapText(text,lineLength) {
-        for(var i=0;i<text.length;i++) {
-          if((i+1)%lineLength===0) {
-            if(text[i] !== ' ') {
-              var replacementChar = ' ';
-              if(text[i+1] && charReg.test(text[i+1])) {
-                if(text[i-1] && charReg.test(text[i-1])) {
-                  //This char is in the middle of a word
-                  text = text.substring(0,i) + '-' + text.substring(i);
-                } else {
-                  text = text.substring(0,i) + ' ' + text.substring(i);
-                }
-              }
-            }
-          }
-          else if(i%lineLength===0) {
-            if(text[i] === ' ') {
-              text = text.substring(0,i) + text.substring(i+1);
-            }
-          }
-        }
-        return text;
-      }
-
-      function getLetter(text, r, c, tableCols) {
-        var letter = text[(r)*tableCols+c];
-        return letter?letter:' ';
       }
 
       function getURLParameter(name) {
