@@ -41,6 +41,7 @@ function Message(text) {
 		doc['encryptedText'] = this.encryptedText;
 		doc['hint'] = this.hint;
 		doc['date'] = new Date();
+		doc['checksLeft'] = 3;
 		return doc;
 	};
 	this.createFromDoc = function(doc) {
@@ -102,6 +103,23 @@ function update(id, updateData) {
 	});
 }
 
+//Remove a message from the mongo db
+function remove(id) {
+	try {
+		id = new ObjectID(id);
+	} catch (e) {
+		return;
+	}
+	MongoClient.connect(dbAddress, function(err, db) {
+		if(err) throw err;
+		var collection = db.collection('messages');
+		collection.remove({'_id':id}, function(err,result) {
+			if(err) throw err;
+		});
+		db.close();
+	});
+}
+
 //Handle GET root
 function getMain(req,res) {
 	res.sendfile('main.html');
@@ -120,7 +138,11 @@ function postMessage(req,res) {
 function getMessage(req,res) {
 	if(req.query.id) {
 		retrieve(req.query.id,function(doc) {
-			res.json(doc);
+			if(doc) {
+				res.json(doc);
+			} else {
+				res.json({'expired':true});
+			}
 		});
 	} else {
 		res.sendfile('404.html');
@@ -141,21 +163,35 @@ function postGuess(req,res) {
 	res.end();
 }
 
-//Handle GET /guess
-function getGuess(req,res) {
-	if(req.query.id) {
-		retrieve(req.query.id,function(doc) {
-			res.json(doc['guess']);
-		});
-	}
-}
-
 //Handle POST /check
 function postCheck(req,res) {
 	if(req.body.id && req.body.guess) {
-		
+		retrieve(req.body.id,function(doc) {
+			if(doc) {
+				if(doc['checksLeft'] > 0) {
+					var matched = [];
+					var checksLeft = doc['checksLeft']-1;
+					for(var i=0;i<doc['text'].length;i++) {
+						matched.push((req.body.guess[i] === doc['text'][i]) || /[^a-zA-Z]/.test(doc['text'][i]));
+					}
+					if(matched.indexOf(false)===-1) {
+						checksLeft = 0;
+					}
+					var updateData = {'matched':matched,'checksLeft':checksLeft};
+					var updateCommand = {$set:updateData};
+					update(req.body.id,updateCommand);
+					res.json(updateData);
+				} else {
+					remove(req.body.id);
+					res.json({'expired':true});
+				}
+			} else {
+				res.json({'expired':true});
+			}
+		});
+	} else {
+		res.end();
 	}
-	res.end();
 }
 
 //Handle GET styles.css
@@ -178,7 +214,6 @@ app.post('/message', postMessage);
 app.get('/message', getMessage);
 app.get('/view', getView);
 app.post('/guess', postGuess);
-app.get('/guess',getGuess);
 app.post('/check',postCheck);
 app.use(express.favicon('favicon.ico'));
 app.use(pageNotFound);

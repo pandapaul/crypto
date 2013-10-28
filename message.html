@@ -11,36 +11,91 @@
         var id = getURLParameter('id');
         var guess = [];
 
-        function getGuess() {
-          $.get('/guess?id='+id,function(data) {
-            if(data && (data !== guess)) {
-              $('input.letterBox').each(function(index) {
-                if(data[this.id]!==" " && data[this.id]!==this.value) {
-                  $(this).val(data[this.id]);
-                }
-              });
+        function refresh(data) {
+          if(data.checksLeft >= 0) {
+            setCheckButton(data.checksLeft);
+          }
+          if(data.guess && (guess !== data.guess)) {
+            $('input.letterBox').each(function(index) {
+              if(data.guess[this.id]!==" " && data.guess[this.id]!==this.value) {
+                $(this).val(data.guess[this.id]);
+              }
+            });
+          }
+          if(data.matched) {
+            setCorrectLetters(data.matched);
+          }
+        }
+
+        function poll() {
+          $.get('/message?id='+id,function(data) {
+            if(data.expired) {
+              expirePage();
+            } else if(data) {
+              refresh(data);
             }
           });
         }
 
-        function postGuess() {
-          for(var i=0;i<guess.length;i++) {
-            if(!guess[i]) {
-              guess[i] = ' ';
+        function expirePage() {
+          location.reload();
+        }
+
+        function fluffArray(array) {
+          for(var i=0;i<array.length;i++) {
+            if(!array[i]) {
+              array[i] = ' ';
             }
           }
+          return array;
+        }
+
+        function postGuess() {
+          guess = fluffArray(guess);
           $.post("/guess",{'id': id , 'guess': guess});
         }
 
+        function setCheckButton(checksLeft) {
+          if(checksLeft === 0) {
+              $('#checkButton').val('Burn');
+              $('#checkButton').addClass('burn');
+            } else {
+              $('#checkButton').val(checksLeft + ' Checks Left');
+            }
+        }
+
+        function setCorrectLetters(matched) {
+          for(var i=0;i<matched.length;i++) {
+            if(matched[i]) {
+              var selector = '#'+i;
+              $(selector).addClass('correct');
+              $(selector).attr('disabled','disabled');
+            }
+          }
+        }
+
         $('#messageForm').submit(function() {
-          postGuess();
-          //TODO add in implementation of actual guess submission w/checking 
+          if(!guess) {
+            return false;
+          }
+          guess = fluffArray(guess);
+          $.post("/check",{'id': id, 'guess': guess}, function(data) {
+            if(data.matched) {
+              setCorrectLetters(data.matched);
+            }
+            if(data.checksLeft >= 0) {
+              setCheckButton(data.checksLeft);
+            }
+            if(data.expired) {
+              expirePage();
+            }
+          });
           return false;
         });
 
         $.get('/message?id='+id,function(data) {
           var message = $('#encryptedMessage');
-          if(data) {
+          if(data && !data.expired) {
             if(data.guess) {
               guess = data.guess;
             } else {
@@ -50,17 +105,19 @@
             var text = wrapText(data.encryptedText,tableCols);
             var tableRows = Math.ceil(text.length/tableCols);
             var tableString = '';
-            var boxes = 0;
+            var boxes = -1;
             tableString += '<table><tbody>';
             for(var r=0;r<tableRows;r++) {
               tableString += '<tr>';
               for(var c=0;c<tableCols;c++) {
                 tableString += '<td class="letterBox">';
                 var letter = getLetter(text,r,c,tableCols);
+                if(letter === data.encryptedText[boxes+1]) {
+                  boxes++;
+                }
                 if(charReg.test(letter)) {
                   var guessLetter = (guess[boxes]&&guess[boxes]!==' ')?guess[boxes]:'';
                   tableString += '<input class="letterBox letter'+letter+'" name="'+letter+'" maxlength="1" id="'+boxes+'" value="'+guessLetter+'">';
-                  boxes++;
                 } else {
                   tableString += letter;
                 }
@@ -102,7 +159,8 @@
                     postGuess();
                 }
             });
-            setInterval(getGuess,3000);
+            refresh(data);
+            setInterval(poll,3000);
           } else {
             message.html('message expired');
           }
@@ -155,7 +213,7 @@
         <div id='formDiv' style='display:none'>
           <br>
           <div id='hint' class='hint'></div>
-    		  <form id='messageForm'><input type='submit' class='submit' value='Guess'></form>
+    		  <form id='messageForm'><input id='checkButton' type='submit' class='submit' value='Check'></form>
         </div>
     	</p>
     </div>
