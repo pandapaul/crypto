@@ -19,6 +19,7 @@
             $('input.letterBox').each(function(index) {
               if(data.guess[this.id]!==" " && data.guess[this.id]!==this.value) {
                 this.value = data.guess[this.id];
+                guess[this.id] = this.value;
               }
             });
           }
@@ -160,7 +161,7 @@
                 }
             });
             refresh(data);
-            setInterval(poll,3000);
+            setInterval(poll,1000);
           } else {
             message.html('message expired');
           }
