@@ -41,6 +41,7 @@ function Message(text) {
 		doc['encryptedText'] = this.encryptedText;
 		doc['hint'] = this.hint;
 		doc['date'] = new Date();
+		doc['tiemstamp'] = doc['date'].getTime();
 		doc['checksLeft'] = 3;
 		return doc;
 	};
@@ -87,7 +88,7 @@ function retrieve(id, callback) {
 }
 
 //Update a message in the mongo db
-function update(id, updateData) {
+function update(id, updateCommand) {
 	try {
 		id = new ObjectID(id);
 	} catch (e) {
@@ -96,7 +97,7 @@ function update(id, updateData) {
 	MongoClient.connect(dbAddress, function(err, db) {
 		if(err) throw err;
 		var collection = db.collection('messages');
-		collection.update({'_id':id},updateData, function(err,result) {
+		collection.update({'_id':id},updateCommand, function(err,result) {
 			if(err) throw err;
 		});
 		db.close();

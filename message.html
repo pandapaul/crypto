@@ -12,20 +12,20 @@
         var guess = [];
 
         function refresh(data) {
-          if(data.checksLeft >= 0) {
-            setCheckButton(data.checksLeft);
-          }
-          if(data.guess && (data.guess !== guess)) {
-            $('input.letterBox').each(function(index) {
-              if(data.guess[this.id]!==" " && data.guess[this.id]!==this.value) {
-                this.value = data.guess[this.id];
-                guess[this.id] = this.value;
-              }
-            });
-          }
-          if(data.matched) {
-            setCorrectLetters(data.matched);
-          }
+            if(data.checksLeft >= 0) {
+              setCheckButton(data.checksLeft);
+            }
+            if(data.guess && (data.guess !== guess)) {
+              $('input.letterBox').each(function(index) {
+                if(data.guess[this.id]!==this.value) {
+                  this.value = data.guess[this.id]===' '?'':data.guess[this.id];
+                  guess[this.id] = this.value;
+                }
+              });
+            }
+            if(data.matched) {
+              setCorrectLetters(data.matched);
+            }
         }
 
         function poll() {
@@ -151,6 +151,7 @@
                     }
                     break;
                   default:
+                    console.log("keyup");
                     var identifier = 'input.letter'+this.name;
                     var l = this.value.toLowerCase();
                     $(identifier).each(function(index) {
@@ -187,7 +188,6 @@
           <div id='hint' class='hint'></div>
     		  <form id='messageForm'><input id='checkButton' type='submit' class='submit' value='Check'></form>
         </div>
-    	</p>
     </div>
   </body>
 </html>

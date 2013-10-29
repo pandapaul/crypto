@@ -71,6 +71,11 @@ input.letterBox {
   border: 0;
 }
 
+input.disabled {
+  background-color: rgba(0,0,0,0);
+  color: #A3D295;
+}
+
 input.letterBox.correct {
   background-color: rgba(0,0,0,0);
   color: #A3D295;
