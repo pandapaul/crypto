@@ -41,7 +41,7 @@ function Message(text) {
 		doc['encryptedText'] = this.encryptedText;
 		doc['hint'] = this.hint;
 		doc['date'] = new Date();
-		doc['tiemstamp'] = doc['date'].getTime();
+		doc['timestamp'] = doc['date'].getTime();
 		doc['checksLeft'] = 3;
 		return doc;
 	};
@@ -88,17 +88,23 @@ function retrieve(id, callback) {
 }
 
 //Update a message in the mongo db
-function update(id, updateCommand) {
+function update(id, updateCommand, callback) {
 	try {
 		id = new ObjectID(id);
 	} catch (e) {
 		return;
 	}
+	var timestamp = new Date().getTime();
+	updateCommand.$set.timestamp = timestamp;
 	MongoClient.connect(dbAddress, function(err, db) {
 		if(err) throw err;
 		var collection = db.collection('messages');
 		collection.update({'_id':id},updateCommand, function(err,result) {
-			if(err) throw err;
+			if(err) { 
+				throw err;
+			}
+			console.log('blalbhahsdf');
+			callback(timestamp);
 		});
 		db.close();
 	});
@@ -159,9 +165,12 @@ function getView(req,res) {
 function postGuess(req,res) {
 	if(req.body.id && req.body.guess) {
 		var updateData = {$set:{guess:req.body.guess}};
-		update(req.body.id, updateData);
+		update(req.body.id, updateData, function(timestamp) {
+			res.json({'timestamp':timestamp});
+		});
+	} else {
+		res.end();
 	}
-	res.end();
 }
 
 //Handle POST /check
@@ -180,8 +189,12 @@ function postCheck(req,res) {
 					}
 					var updateData = {'matched':matched,'checksLeft':checksLeft};
 					var updateCommand = {$set:updateData};
-					update(req.body.id,updateCommand);
-					res.json(updateData);
+					update(req.body.id, updateCommand, function(timestamp) {
+						updateData.timestamp = timestamp;
+						res.json(updateData);
+						console.log('postCheck did get callback');
+						console.log(updateData);
+					});
 				} else {
 					remove(req.body.id);
 					res.json({'expired':true});

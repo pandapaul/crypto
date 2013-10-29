@@ -6,34 +6,37 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script>
       var charReg = /[a-zA-Z]/;
+      var timestamp = 0;
+      var guess = [];
+      var id = getURLParameter('id');
 
       function setup() {
-        var id = getURLParameter('id');
-        var guess = [];
 
         function refresh(data) {
-            if(data.checksLeft >= 0) {
-              setCheckButton(data.checksLeft);
-            }
-            if(data.guess && (data.guess !== guess)) {
-              $('input.letterBox').each(function(index) {
-                if(data.guess[this.id]!==this.value) {
-                  this.value = data.guess[this.id]===' '?'':data.guess[this.id];
-                  guess[this.id] = this.value;
-                }
-              });
-            }
-            if(data.matched) {
-              setCorrectLetters(data.matched);
-            }
+          timestamp = data.timestamp;
+          console.log("refreshing");
+          if(data.checksLeft >= 0) {
+            setCheckButton(data.checksLeft);
+          }
+          if(data.guess && (data.guess !== guess)) {
+            $('input.letterBox').each(function(index) {
+              if(data.guess[this.id]!==this.value) {
+                this.value = data.guess[this.id]===' '?'':data.guess[this.id];
+                guess[this.id] = this.value;
+              }
+            });
+          }
+          if(data.matched) {
+            setCorrectLetters(data.matched);
+          }
         }
 
         function poll() {
           $.get('/message?id='+id,function(data) {
             if(data.expired) {
               expirePage();
-            } else if(data) {
-              refresh(data);
+            } else if(data.timestamp > timestamp) {
+              //refresh(data);
             }
           });
         }
@@ -53,7 +56,13 @@
 
         function postGuess() {
           guess = fluffArray(guess);
-          $.post("/guess",{'id': id , 'guess': guess});
+          $.post("/guess",{'id': id , 'guess': guess}, function(data) {
+            console.log('postGuess data = ' + data);
+            if(data.timestamp) {
+              timestamp = data.timestamp;
+              console.log('new stamp from postGuess: ' + timestamp);
+            }
+          });
         }
 
         function setCheckButton(checksLeft) {
@@ -80,17 +89,21 @@
             return false;
           }
           guess = fluffArray(guess);
-          $.post("/check",{'id': id, 'guess': guess}, function(data) {
-            if(data.matched) {
-              setCorrectLetters(data.matched);
-            }
-            if(data.checksLeft >= 0) {
-              setCheckButton(data.checksLeft);
-            }
-            if(data.expired) {
-              expirePage();
-            }
-          });
+          $.post("/check",{'id': id, 'guess': guess})
+            .done(function(data) {
+              if(data.timestamp) {
+                timestamp = data.timestamp;
+              }
+              if(data.matched) {
+                setCorrectLetters(data.matched);
+              }
+              if(data.checksLeft >= 0) {
+                setCheckButton(data.checksLeft);
+              }
+              if(data.expired) {
+                expirePage();
+              }
+            });
           return false;
         });
 
@@ -102,6 +115,7 @@
             } else {
               guess = new Array(data.encryptedText.length);
             }
+            timestamp = data.timestamp;
             var tableCols = 24;
             var text = data.encryptedText;
             var tableRows = Math.ceil(text.length/tableCols);
