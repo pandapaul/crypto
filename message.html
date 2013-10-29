@@ -151,7 +151,7 @@
                     break;
                   default:
                     var identifier = 'input.letter'+this.name;
-                    var l = this.value;
+                    var l = this.value.toLowerCase();
                     $(identifier).each(function(index) {
                       this.value = l;
                       guess[this.id] = this.value;

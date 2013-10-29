@@ -38,7 +38,6 @@
             var messageText = $('#message').val();
             messageText = messageText.toLowerCase();
             messageText = wrapText(messageText,24);
-            console.log("messageText = " + messageText);
             $.post("/message",{'message': messageText},function(data) {
               if(data.id) {
                 window.location.href = '/view?id='+data.id;
