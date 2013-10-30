@@ -81,6 +81,7 @@ function retrieve(id, callback) {
 		if(err) throw err;
 		var collection = db.collection('messages');
 		collection.findOne({_id:id}, function(err, item) {
+			delete item.text;
 			callback(item);
 			db.close();
 		});
