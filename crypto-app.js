@@ -99,13 +99,10 @@ function update(id, updateCommand, callback) {
 	MongoClient.connect(dbAddress, function(err, db) {
 		if(err) throw err;
 		var collection = db.collection('messages');
-		collection.update({'_id':id},updateCommand, function(err,result) {
-			if(err) { 
-				throw err;
-			}
-			console.log('blalbhahsdf');
-			callback(timestamp);
+		collection.update({'_id':id},updateCommand,function(err,result) {
+			if(err) throw err;
 		});
+		callback(timestamp);
 		db.close();
 	});
 }
@@ -192,8 +189,6 @@ function postCheck(req,res) {
 					update(req.body.id, updateCommand, function(timestamp) {
 						updateData.timestamp = timestamp;
 						res.json(updateData);
-						console.log('postCheck did get callback');
-						console.log(updateData);
 					});
 				} else {
 					remove(req.body.id);

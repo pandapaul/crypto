@@ -14,7 +14,6 @@
 
         function refresh(data) {
           timestamp = data.timestamp;
-          console.log("refreshing");
           if(data.checksLeft >= 0) {
             setCheckButton(data.checksLeft);
           }
@@ -36,7 +35,7 @@
             if(data.expired) {
               expirePage();
             } else if(data.timestamp > timestamp) {
-              //refresh(data);
+              refresh(data);
             }
           });
         }
@@ -57,10 +56,8 @@
         function postGuess() {
           guess = fluffArray(guess);
           $.post("/guess",{'id': id , 'guess': guess}, function(data) {
-            console.log('postGuess data = ' + data);
             if(data.timestamp) {
               timestamp = data.timestamp;
-              console.log('new stamp from postGuess: ' + timestamp);
             }
           });
         }
@@ -69,6 +66,8 @@
           if(checksLeft === 0) {
               $('#checkButton').val('Burn');
               $('#checkButton').addClass('burn');
+            } else if(checksLeft === 'loading') {
+              $('#checkButton').val('Checking...');
             } else {
               $('#checkButton').val(checksLeft + ' Checks Left');
             }
@@ -85,20 +84,22 @@
         }
 
         $('#messageForm').submit(function() {
+          if($('#checkButton').val()!=='Burn') {
+            setCheckButton('loading');
+          }
           if(!guess) {
             return false;
           }
           guess = fluffArray(guess);
-          $.post("/check",{'id': id, 'guess': guess})
-            .done(function(data) {
+          $.post("/check",{'id': id, 'guess': guess}, function(data) {
               if(data.timestamp) {
                 timestamp = data.timestamp;
               }
-              if(data.matched) {
-                setCorrectLetters(data.matched);
-              }
               if(data.checksLeft >= 0) {
                 setCheckButton(data.checksLeft);
+              }
+              if(data.matched) {
+                setCorrectLetters(data.matched);
               }
               if(data.expired) {
                 expirePage();
@@ -165,7 +166,6 @@
                     }
                     break;
                   default:
-                    console.log("keyup");
                     var identifier = 'input.letter'+this.name;
                     var l = this.value.toLowerCase();
                     $(identifier).each(function(index) {
@@ -176,7 +176,7 @@
                 }
             });
             refresh(data);
-            setInterval(poll,1000);
+            setInterval(poll,1500);
           } else {
             message.html('message expired');
           }
