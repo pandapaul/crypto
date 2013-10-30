@@ -12,6 +12,8 @@
 
       function setup() {
 
+        $.ajaxSetup({cache:false});
+
         function refresh(data) {
           timestamp = data.timestamp;
           if(data.checksLeft >= 0) {
@@ -78,7 +80,7 @@
             if(matched[i]) {
               var selector = '#'+i;
               $(selector).addClass('correct');
-              $(selector).attr('disabled','disabled');
+              $(selector).focus(function(){this.blur();});
             }
           }
         }
@@ -117,11 +119,11 @@
               guess = new Array(data.encryptedText.length);
             }
             timestamp = data.timestamp;
-            var tableCols = 24;
+            var tableCols = Math.min(24,data.encryptedText.length);
             var text = data.encryptedText;
             var tableRows = Math.ceil(text.length/tableCols);
             var tableString = '';
-            tableString += '<table><tbody>';
+            tableString += '<table><tbody><tr><td>&nbsp;</td></tr>';
             for(var r=0;r<tableRows;r++) {
               tableString += '<tr>';
               for(var c=0;c<tableCols;c++) {
@@ -176,7 +178,7 @@
                 }
             });
             refresh(data);
-            setInterval(poll,1500);
+            window.setInterval(poll,1500);
           } else {
             message.html('message expired');
           }

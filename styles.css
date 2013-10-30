@@ -15,6 +15,7 @@ div.content {
   background: #212121;
   margin: 0 auto;
   padding: 5px;
+  width: 512px;
   text-align: center;
   /* border-radius */
   -webkit-border-radius: 5px;
@@ -48,21 +49,19 @@ input {
 
 table {
   text-align: center;
+  margin: 0 auto;
+  border-spacing:1;
 }
 
 td.letterBox {
   width: 18px;
-  padding: 0px;
-  margin: 0 auto;
+  padding: 0;
   text-align: center;
 }
 
 input.letterBox {
   width: 18px;
-  /*padding-left: 1px;
-  padding-right: 1px;*/
-  padding-top: 0px;
-  padding-bottom: 0px;
+  padding: 0;
   margin: 0;
   font-weight: bold;
   font-size: 16px;
@@ -70,13 +69,8 @@ input.letterBox {
   border: 0;
 }
 
-input.disabled {
-  background-color: rgba(0,0,0,0);
-  color: #A3D295;
-}
-
 input.letterBox.correct {
-  background-color: rgba(0,0,0,0);
+  background-color: transparent;
   color: #A3D295;
 }
 
