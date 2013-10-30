@@ -81,7 +81,6 @@ function retrieve(id, callback) {
 		if(err) throw err;
 		var collection = db.collection('messages');
 		collection.findOne({_id:id}, function(err, item) {
-			delete item.text;
 			callback(item);
 			db.close();
 		});
@@ -144,6 +143,7 @@ function getMessage(req,res) {
 	if(req.query.id) {
 		retrieve(req.query.id,function(doc) {
 			if(doc) {
+				delete doc.text;
 				res.json(doc);
 			} else {
 				res.json({'expired':true});
