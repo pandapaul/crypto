@@ -26,12 +26,12 @@
           }
         }
         
-        if(timestamp !== 0) {
-          if(checksLeft > data.checksLeft) {
-            $('#title').html('<font color="'+data.user.color+'">'+data.user.name + '</font> used a check.');
-            window.setTimeout(function(title) {$('#title').html('Message')},3000);
-          }
-        }
+        // if(timestamp !== 0) {
+        //   if(checksLeft > data.checksLeft) {
+        //     $('#title').html('<font color="'+data.user.color+'">'+data.user.name + '</font> used a check.');
+        //     window.setTimeout(function(title) {$('#title').html('Message')},3000);
+        //   }
+        // }
 
         timestamp = data.timestamp;
         if(checksLeft !== data.checksLeft) {
