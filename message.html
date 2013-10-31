@@ -10,80 +10,79 @@
       var guess = [];
       var id = getURLParameter('id');
 
+      function refresh(data) {
+        timestamp = data.timestamp;
+        if(data.checksLeft >= 0) {
+          setCheckButton(data.checksLeft);
+        }
+        if(data.guess && (data.guess !== guess)) {
+          $('input.letterBox').each(function(index) {
+            if(data.guess[this.id]!==this.value) {
+              this.value = data.guess[this.id]===' '?'':data.guess[this.id];
+              guess[this.id] = this.value;
+            }
+          });
+        }
+        if(data.matched) {
+          setCorrectLetters(data.matched);
+        }
+      }
+
+      function poll() {
+        $.get('/message?id='+id,function(data) {
+          if(data.expired) {
+            expirePage();
+          } else if(data.timestamp > timestamp) {
+            refresh(data);
+          }
+        });
+      }
+
+      function expirePage() {
+        location.reload();
+      }
+
+      function fluffArray(array) {
+        for(var i=0;i<array.length;i++) {
+          if(!array[i]) {
+            array[i] = ' ';
+          }
+        }
+        return array;
+      }
+
+      function postGuess() {
+        guess = fluffArray(guess);
+        $.post("/guess",{'id': id , 'guess': guess}, function(data) {
+          if(data.timestamp) {
+            timestamp = data.timestamp;
+          }
+        });
+      }
+
+      function setCheckButton(checksLeft) {
+        if(checksLeft === 0) {
+            $('#checkButton').val('Burn');
+            $('#checkButton').addClass('burn');
+          } else if(checksLeft === 'loading') {
+            $('#checkButton').val('Checking...');
+          } else {
+            $('#checkButton').val(checksLeft + ' Checks Left');
+          }
+      }
+
+      function setCorrectLetters(matched) {
+        for(var i=0;i<matched.length;i++) {
+          if(matched[i]) {
+            var selector = '#'+i;
+            $(selector).addClass('correct');
+            $(selector).focus(function(){this.blur();});
+          }
+        }
+      }
+
       function setup() {
-
-        $.ajaxSetup({cache:false});
-
-        function refresh(data) {
-          timestamp = data.timestamp;
-          if(data.checksLeft >= 0) {
-            setCheckButton(data.checksLeft);
-          }
-          if(data.guess && (data.guess !== guess)) {
-            $('input.letterBox').each(function(index) {
-              if(data.guess[this.id]!==this.value) {
-                this.value = data.guess[this.id]===' '?'':data.guess[this.id];
-                guess[this.id] = this.value;
-              }
-            });
-          }
-          if(data.matched) {
-            setCorrectLetters(data.matched);
-          }
-        }
-
-        function poll() {
-          $.get('/message?id='+id,function(data) {
-            if(data.expired) {
-              expirePage();
-            } else if(data.timestamp > timestamp) {
-              refresh(data);
-            }
-          });
-        }
-
-        function expirePage() {
-          location.reload();
-        }
-
-        function fluffArray(array) {
-          for(var i=0;i<array.length;i++) {
-            if(!array[i]) {
-              array[i] = ' ';
-            }
-          }
-          return array;
-        }
-
-        function postGuess() {
-          guess = fluffArray(guess);
-          $.post("/guess",{'id': id , 'guess': guess}, function(data) {
-            if(data.timestamp) {
-              timestamp = data.timestamp;
-            }
-          });
-        }
-
-        function setCheckButton(checksLeft) {
-          if(checksLeft === 0) {
-              $('#checkButton').val('Burn');
-              $('#checkButton').addClass('burn');
-            } else if(checksLeft === 'loading') {
-              $('#checkButton').val('Checking...');
-            } else {
-              $('#checkButton').val(checksLeft + ' Checks Left');
-            }
-        }
-
-        function setCorrectLetters(matched) {
-          for(var i=0;i<matched.length;i++) {
-            if(matched[i]) {
-              var selector = '#'+i;
-              $(selector).addClass('correct');
-              $(selector).focus(function(){this.blur();});
-            }
-          }
-        }
+        $.ajaxSetup({cache:false});   
 
         $('#messageForm').submit(function() {
           if($('#checkButton').val()!=='Burn') {
