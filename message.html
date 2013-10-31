@@ -100,7 +100,9 @@
       }
 
       function getRandomColor() {
-        return '#'+Math.floor(Math.random()*16777215).toString(16);
+        // return '#'+Math.floor(Math.random()*16777215).toString(16);
+        var color = 'rgb('+Math.floor(Math.random()*156+100).toString()+','+Math.floor(Math.random()*156+100).toString()+','+Math.floor(Math.random()*156+100).toString()+')';
+        return color;
       }
 
       function setupUserInfo() {
@@ -239,7 +241,7 @@
     <div class='content'>
     	<h1 id='title'>Message</h1>
         <div id='userFormDiv' style='display:none'><form id='userForm'>
-          <br><div id='colorDiv' class='colorbox'></div><input type='text' class='username' id='username' placeholder='Your Name' required='true' maxlength='30' size='30' autofocus='true'>
+          <br><div id='colorDiv' class='colorbox'></div><input type='text' class='username' id='username' placeholder='Your Name' required='true' maxlength='100' size='30' autofocus='true'>
           <br><br><input type='submit' id='usernameButton' value='Continue' class='submit'>
         </form></div>
         <div id='encryptedMessage' class='message'>&nbsp;</div>
