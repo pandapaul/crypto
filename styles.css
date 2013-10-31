@@ -51,6 +51,22 @@ div.colorbox {
   border: 1px solid #444444;
 }
 
+div.userList {
+  float:left;
+}
+
+div.userBox {
+  float:left;
+  margin-left:2px;
+  width:12px;
+  height:12px;
+  /* border-radius */
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  border: 1px solid #444444;
+}
+
 form {
   margin-bottom: 40px;
 }

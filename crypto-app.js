@@ -148,11 +148,24 @@ function getMessage(req,res) {
 	if(req.query.id && req.query.user) {
 		retrieve(req.query.id,function(doc) {
 			if(doc) {
-				var updateCommand = {$push:{'allUsers':req.body.user}};
-				update(req.body.id, updateCommand, function(timestamp) {
-					delete doc.text;
-					res.json(doc);
-				});
+				if(req.query.user.name && req.query.user.color) {
+					var index=-1;
+					for(var i=0;i<doc['allUsers'].length;i++) {
+						if(doc['allUsers'][i].name === req.query.user.name && doc['allUsers'][i].color === req.query.user.color) {
+							index = i;
+							break;
+						}
+					}
+					if(index === -1) {
+						//The db doc does not know of this user, add him/her
+						var updateCommand = {$addToSet:{'allUsers':req.query.user}};
+						update(req.query.id, updateCommand, function(ts){
+							setTimeout(checkInactive(req.query.id,req.query.user),5000);		
+						});
+					}
+				}
+				delete doc.text;
+				res.json(doc);
 			} else {
 				res.json({'expired':true});
 			}
@@ -209,6 +222,23 @@ function postCheck(req,res) {
 		});
 	} else {
 		res.end();
+	}
+}
+
+//Check for inactive user
+function checkInactive(id,user) {
+	//TODO: implement
+}
+
+//Handle POST /leave
+function postLeave(req,res) {
+	if(req.body.id && req.body.user) {
+		var updateData = {'allUsers':req.body.user};
+		var updateCommand = {$pull:updateData};
+		update(req.body.id, updateCommand, function(timestamp) {
+			updateData.timestamp = timestamp;
+			res.json(updateData);
+		});
 	}
 }
 

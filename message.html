@@ -11,10 +11,20 @@
       var id = getURLParameter('id');
       var user = {name:'',color:''};
       var allUsers = [];
-      var checksLeft = 3;
+      var checksLeft=-1;
 
       function refresh(data) {
-        allUsers = data.allUsers;
+        if(data.allUsers && (data.allUsers!==allUsers)) {
+          //Update user list
+          allUsers = data.allUsers;
+          var userlistdiv = $('#userList');
+          userlistdiv.html('');
+          for(var i=0;i<allUsers.length;i++) {
+            var user = allUsers[i];
+            var userdivstring = '<div style="background-color:'+user.color+'" title="'+user.name+'" class="userBox">';
+            userlistdiv.append(userdivstring);
+          }
+        }
         
         if(timestamp !== 0) {
           if(checksLeft > data.checksLeft) {
@@ -25,12 +35,12 @@
 
         timestamp = data.timestamp;
         if(checksLeft !== data.checksLeft) {
-          
           checksLeft = data.checksLeft;
           if(data.checksLeft >= 0) {
             setCheckButton(data.checksLeft);
           }
         }
+
         if(data.guess && (data.guess !== guess)) {
           $('input.letterBox').each(function(index) {
             if(data.guess[this.id]!==this.value && !(data.guess[this.id]===' ' && this.value==='')) {
@@ -46,7 +56,7 @@
       }
 
       function poll() {
-        $.get('/message?',{'id':id,'user':user},function(data) {
+        $.get('/message',{'id':id,'user':user},function(data) {
           if(data.expired) {
             expirePage();
           } else if(data.timestamp > timestamp) {
@@ -148,7 +158,7 @@
       function setup() {
         $.ajaxSetup({cache:false});
 
-        $.get('/message?',{'id':id,'user':user},function(data) {
+        $.get('/message',{'id':id,'user':user},function(data) {
           var message = $('#encryptedMessage');
           if(data && !data.expired) {
             setupUserInfo();
@@ -239,6 +249,7 @@
   </head>
   <body>
     <div class='content'>
+    <div id='userList' class='userList'></div>
     	<h1 id='title'>Message</h1>
         <div id='userFormDiv' style='display:none'><form id='userForm'>
           <br><div id='colorDiv' class='colorbox'></div><input type='text' class='username' id='username' placeholder='Your Name' required='true' maxlength='100' size='30' autofocus='true'>
