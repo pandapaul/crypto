@@ -9,17 +9,34 @@
       var timestamp = 0;
       var guess = [];
       var id = getURLParameter('id');
+      var user = {name:'',color:''};
+      var allUsers = [];
+      var checksLeft = 3;
 
       function refresh(data) {
+        allUsers = data.allUsers;
+        
+        if(timestamp !== 0) {
+          if(checksLeft > data.checksLeft) {
+            $('#title').html('<font color="'+data.user.color+'">'+data.user.name + '</font> used a check.');
+            window.setTimeout(function(title) {$('#title').html('Message')},3000);
+          }
+        }
+
         timestamp = data.timestamp;
-        if(data.checksLeft >= 0) {
-          setCheckButton(data.checksLeft);
+        if(checksLeft !== data.checksLeft) {
+          
+          checksLeft = data.checksLeft;
+          if(data.checksLeft >= 0) {
+            setCheckButton(data.checksLeft);
+          }
         }
         if(data.guess && (data.guess !== guess)) {
           $('input.letterBox').each(function(index) {
-            if(data.guess[this.id]!==this.value) {
+            if(data.guess[this.id]!==this.value && !(data.guess[this.id]===' ' && this.value==='')) {
               this.value = data.guess[this.id]===' '?'':data.guess[this.id];
               guess[this.id] = this.value;
+              this.style['background-color'] = data.user.color;
             }
           });
         }
@@ -29,7 +46,7 @@
       }
 
       function poll() {
-        $.get('/message?id='+id,function(data) {
+        $.get('/message?',{'id':id,'user':user},function(data) {
           if(data.expired) {
             expirePage();
           } else if(data.timestamp > timestamp) {
@@ -53,7 +70,7 @@
 
       function postGuess() {
         guess = fluffArray(guess);
-        $.post("/guess",{'id': id , 'guess': guess}, function(data) {
+        $.post("/guess",{'id': id , 'guess': guess, 'user': user}, function(data) {
           if(data.timestamp) {
             timestamp = data.timestamp;
           }
@@ -76,13 +93,29 @@
           if(matched[i]) {
             var selector = '#'+i;
             $(selector).addClass('correct');
+            $(selector).attr('style','backgroud-color:#00000000');
             $(selector).focus(function(){this.blur();});
           }
         }
       }
 
-      function setup() {
-        $.ajaxSetup({cache:false});   
+      function getRandomColor() {
+        return '#'+Math.floor(Math.random()*16777215).toString(16);
+      }
+
+      function setupUserInfo() {
+        user.color = getRandomColor();
+        $('#colorDiv').css('background-color',user.color);
+        $('#encryptedMessage').css('display','none');
+        $('#userFormDiv').css('display','block');
+
+        $('#userForm').submit(function() {
+          user.name = $('#username').val();
+          $('#userFormDiv').css('display','none');
+          $('#encryptedMessage').css('display','block');
+          $('#formDiv').css('display','block');
+          return false;
+        });
 
         $('#messageForm').submit(function() {
           if($('#checkButton').val()!=='Burn') {
@@ -92,7 +125,7 @@
             return false;
           }
           guess = fluffArray(guess);
-          $.post("/check",{'id': id, 'guess': guess}, function(data) {
+          $.post("/check",{'id': id, 'guess': guess, 'user': user}, function(data) {
               if(data.timestamp) {
                 timestamp = data.timestamp;
               }
@@ -108,16 +141,21 @@
             });
           return false;
         });
+      }
 
-        $.get('/message?id='+id,function(data) {
+      function setup() {
+        $.ajaxSetup({cache:false});
+
+        $.get('/message?',{'id':id,'user':user},function(data) {
           var message = $('#encryptedMessage');
           if(data && !data.expired) {
+            setupUserInfo();
+
             if(data.guess) {
               guess = data.guess;
             } else {
               guess = new Array(data.encryptedText.length);
             }
-            timestamp = data.timestamp;
             var tableCols = Math.min(24,data.encryptedText.length);
             var text = data.encryptedText;
             var tableRows = Math.ceil(text.length/tableCols);
@@ -151,7 +189,6 @@
             tableString += '</tbody></table>';
             message.append(tableString);
             $('#hint').html(data.hint);
-            $('#formDiv').css('display','block');
             $('input.letterBox').keyup(function(e) {
               switch(e.which) {
                   case 37:
@@ -167,18 +204,23 @@
                     }
                     break;
                   default:
-                    var identifier = 'input.letter'+this.name;
-                    var l = this.value.toLowerCase();
-                    $(identifier).each(function(index) {
-                      this.value = l;
-                      guess[this.id] = this.value;
-                    });
-                    postGuess();
+                    if(this.value !== guess[this.id] && !((this.value===''||this.value===' ') && (guess[this.id]===' '||guess[this.id]===''))) {
+                      var identifier = 'input.letter'+this.name;
+                      var l = this.value.toLowerCase();
+                      $(identifier).each(function(index) {
+                        this.value = l;
+                        guess[this.id] = this.value;
+                        this.style['background-color'] = user.color;
+                      });
+                      postGuess();
+                    }
                 }
             });
             refresh(data);
             window.setInterval(poll,1500);
           } else {
+            $('#userFormDiv').css('display','none');
+            $('#encryptedMessage').css('display','block');
             message.html('message expired');
           }
         });
@@ -195,9 +237,12 @@
   </head>
   <body>
     <div class='content'>
-    	<h1>Message</h1>
-    	<p>
-        <div id='encryptedMessage' class='message'></div>
+    	<h1 id='title'>Message</h1>
+        <div id='userFormDiv' style='display:none'><form id='userForm'>
+          <br><div id='colorDiv' class='colorbox'></div><input type='text' class='username' id='username' placeholder='Your Name' required='true' maxlength='30' size='30' autofocus='true'>
+          <br><br><input type='submit' id='usernameButton' value='Continue' class='submit'>
+        </form></div>
+        <div id='encryptedMessage' class='message'>&nbsp;</div>
         <div id='formDiv' style='display:none'>
           <br>
           <div id='hint' class='hint'></div>

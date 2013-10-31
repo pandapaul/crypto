@@ -43,6 +43,7 @@ function Message(text) {
 		doc['date'] = new Date();
 		doc['timestamp'] = doc['date'].getTime();
 		doc['checksLeft'] = 3;
+		doc['allUsers'] = [];
 		return doc;
 	};
 	this.createFromDoc = function(doc) {
@@ -95,7 +96,11 @@ function update(id, updateCommand, callback) {
 		return;
 	}
 	var timestamp = new Date().getTime();
-	updateCommand.$set.timestamp = timestamp;
+	if(updateCommand.$set) {
+		updateCommand.$set.timestamp = timestamp;
+	} else {
+		updateCommand.$set = {'timestamp':timestamp};
+	}
 	MongoClient.connect(dbAddress, function(err, db) {
 		if(err) throw err;
 		var collection = db.collection('messages');
@@ -140,11 +145,14 @@ function postMessage(req,res) {
 
 //Handle GET /message
 function getMessage(req,res) {
-	if(req.query.id) {
+	if(req.query.id && req.query.user) {
 		retrieve(req.query.id,function(doc) {
 			if(doc) {
-				delete doc.text;
-				res.json(doc);
+				var updateCommand = {$push:{'allUsers':req.body.user}};
+				update(req.body.id, updateCommand, function(timestamp) {
+					delete doc.text;
+					res.json(doc);
+				});
 			} else {
 				res.json({'expired':true});
 			}
@@ -162,8 +170,8 @@ function getView(req,res) {
 //Handle POST /guess
 function postGuess(req,res) {
 	if(req.body.id && req.body.guess) {
-		var updateData = {$set:{guess:req.body.guess}};
-		update(req.body.id, updateData, function(timestamp) {
+		var updateCommand = {$set:{'guess':req.body.guess,'user':req.body.user}};
+		update(req.body.id, updateCommand, function(timestamp) {
 			res.json({'timestamp':timestamp});
 		});
 	} else {
@@ -185,7 +193,7 @@ function postCheck(req,res) {
 					if(matched.indexOf(false)===-1) {
 						checksLeft = 0;
 					}
-					var updateData = {'matched':matched,'checksLeft':checksLeft};
+					var updateData = {'matched':matched,'checksLeft':checksLeft,'user':req.body.user};
 					var updateCommand = {$set:updateData};
 					update(req.body.id, updateCommand, function(timestamp) {
 						updateData.timestamp = timestamp;
