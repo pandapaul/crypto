@@ -13,8 +13,8 @@ h1 {
 
 div.content {
   background: #212121;
-  margin: 0 auto;
   width:551px;
+  margin: 0 auto;
   padding: 5px;
   text-align: center;
   /* border-radius */
@@ -28,7 +28,8 @@ div.content {
 }
 
 div.message {
-  margin: 10px;
+  width:531px;
+  margin: 0 auto;
   font-size: 16px;
 }
 
@@ -41,14 +42,17 @@ div.hint {
 
 div.colorbox {
   float:left;
-  margin-left:130px;
+  margin-left:140px;
   width:15px;
   height:22px;
   /* border-radius */
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
-  border: 1px solid #444444;
+}
+
+div.userContainer {
+  margin: 0 auto;
 }
 
 div.userList {
@@ -57,14 +61,17 @@ div.userList {
 
 div.userBox {
   float:left;
+  color:#000000;
   margin-left:2px;
+  margin-right:1px;
+  margin-top:2px;
+  margin-bottom:1px;
   width:12px;
   height:12px;
   /* border-radius */
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  border: 1px solid #444444;
+  -moz-border-radius: 2px;
+  -webkit-border-radius: 2px;
+  border-radius: 2px;
 }
 
 form {
@@ -89,6 +96,7 @@ td.letterBox {
 
 input.username {
   float: left;
+  height:16px;
   margin-left: 12px;
 }
 
@@ -153,4 +161,13 @@ input.submit.burn {
 input.submit.burn:hover {
   background: #B30000;
   background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.35));
+}
+
+a.titleLink {
+  color: #A3D295;
+  text-decoration:none;
+}
+
+a.titleLink:hover {
+  color: #C3F2B5;
 }

@@ -33,7 +33,11 @@ function Message(text) {
 			}
 		}
 		var randomHintIndex = Math.floor(Math.random()*cryptoChars.length);
-		this.hint = cryptoChars[randomHintIndex] + " = " + unique[randomHintIndex];
+		if(cryptoChars.length>0) {
+			this.hint = cryptoChars[randomHintIndex] + " = " + unique[randomHintIndex];
+		} else {
+			this.hint = "";
+		}
 	};
 	this.createDoc = function() {
 		var doc = {};

@@ -20,16 +20,16 @@
           var userlistdiv = $('#userList');
           userlistdiv.html('');
           for(var i=0;i<allUsers.length;i++) {
-            var user = allUsers[i];
-            var userdivstring = '<div style="background-color:'+user.color+'" title="'+user.name+'" class="userBox">';
+            var aUser = allUsers[i];
+            var userdivstring = '<div style="background-color:'+aUser.color+'" title="'+aUser.name+'" class="userBox"></div>';
             userlistdiv.append(userdivstring);
           }
         }
         
         // if(timestamp !== 0) {
         //   if(checksLeft > data.checksLeft) {
-        //     $('#title').html('<font color="'+data.user.color+'">'+data.user.name + '</font> used a check.');
-        //     window.setTimeout(function(title) {$('#title').html('Message')},3000);
+        //     $('#header').html('<font color="'+data.user.color+'">'+data.user.name + '</font> used a check.');
+        //     window.setTimeout(function(title) {$('#header').html('Message')},3000);
         //   }
         // }
 
@@ -116,13 +116,15 @@
       }
 
       function setupUserInfo() {
-        user.color = getRandomColor();
-        $('#colorDiv').css('background-color',user.color);
+        $('#colorDiv').css('background-color',getRandomColor());
         $('#encryptedMessage').css('display','none');
         $('#userFormDiv').css('display','block');
 
         $('#userForm').submit(function() {
-          user.name = $('#username').val();
+          user.color = $('#colorDiv').css('background-color');
+          var strippedUsername = $('#username').val().replace('<','&#60;');
+          strippedUsername.replace('>','&#62;');
+          user.name = strippedUsername;
           $('#userFormDiv').css('display','none');
           $('#encryptedMessage').css('display','block');
           $('#formDiv').css('display','block');
@@ -233,7 +235,7 @@
           } else {
             $('#userFormDiv').css('display','none');
             $('#encryptedMessage').css('display','block');
-            message.html('message expired');
+            message.html('message expired<p>');
           }
         });
       }
@@ -250,14 +252,13 @@
   <body>
     <div class='content'>
     <div id='userList' class='userList'></div>
-    	<h1 id='title'>Message</h1>
-        <div id='userFormDiv' style='display:none'><form id='userForm'>
-          <br><div id='colorDiv' class='colorbox'></div><input type='text' class='username' id='username' placeholder='Your Name' required='true' maxlength='100' size='30' autofocus='true'>
+    <h1 id='header'><a href="/" class="titleLink">Crypto</a></h1>
+        <div id='userFormDiv' class='message' style='display:none'><form id='userForm'>
+          <br><div id='colorDiv' class='colorbox' onclick='$(this).css("background-color",getRandomColor());'></div><input type='text' class='username' id='username' placeholder='Your Name' required='true' maxlength='100' size='30' autofocus='true'>
           <br><br><input type='submit' id='usernameButton' value='Continue' class='submit'>
         </form></div>
-        <div id='encryptedMessage' class='message'>&nbsp;</div>
-        <div id='formDiv' style='display:none'>
-          <br>
+        <div id='encryptedMessage' class='message'></div>
+        <div id='formDiv' style='display:none'><br>
           <div id='hint' class='hint'></div>
     		  <form id='messageForm'><input id='checkButton' type='submit' class='submit' value='Check'></form>
         </div>
