@@ -122,12 +122,23 @@
 
         $('#userForm').submit(function() {
           user.color = $('#colorDiv').css('background-color');
-          var strippedUsername = $('#username').val().replace('<','&#60;');
-          strippedUsername.replace('>','&#62;');
-          user.name = strippedUsername;
-          $('#userFormDiv').css('display','none');
-          $('#encryptedMessage').css('display','block');
-          $('#formDiv').css('display','block');
+          var username = $("#username").val()
+          var complete = function(username) {
+            var strippedUsername = username.replace('<','&#60;');
+            strippedUsername.replace('>','&#62;');
+            user.name = strippedUsername;
+            $('#userFormDiv').css('display','none');
+            $('#encryptedMessage').css('display','block');
+            $('#formDiv').css('display','block');
+          }
+          if (username === '')  {
+            $.get('http://georules-funnynames.jit.su/api', {}, function(data) {
+              complete(data.name)
+            })
+          }
+          else {
+            complete(username)
+          }
           return false;
         });
 
@@ -254,7 +265,7 @@
     <div id='userList' class='userList'></div>
     <h1 id='header'><a href="/" class="titleLink">Crypto</a></h1>
         <div id='userFormDiv' class='message' style='display:none'><form id='userForm'>
-          <br><div id='colorDiv' class='colorbox' onclick='$(this).css("background-color",getRandomColor());'></div><input type='text' class='username' id='username' placeholder='Your Name' required='true' maxlength='100' size='30' autofocus='true'>
+          <br><div id='colorDiv' class='colorbox' onclick='$(this).css("background-color",getRandomColor());'></div><input type='text' class='username' id='username' placeholder='Your Name' maxlength='100' size='30' autofocus='true'>
           <br><br><input type='submit' id='usernameButton' value='Continue' class='submit'>
         </form></div>
         <div id='encryptedMessage' class='message'></div>
