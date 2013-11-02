@@ -134,7 +134,6 @@
           if (username === '')  {
             $.get('http://georules-funnynames.jit.su/api', {}, function(data) {
               complete(data.name)
-              console.log(data)
             })
           }
           else {
