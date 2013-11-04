@@ -8,36 +8,9 @@
 
       function setup() {
 
-        var charReg = /[a-zA-Z]/;
-
-        function wrapText(text,lineLength) {
-          for(var i=0;i<text.length;i++) {
-            if((i+1)%lineLength===0) {
-              if(text[i] !== ' ') {
-                var replacementChar = ' ';
-                if(text[i+1] && charReg.test(text[i+1])) {
-                  if(text[i-1] && charReg.test(text[i-1])) {
-                    //This char is in the middle of a word
-                    text = text.substring(0,i) + '-' + text.substring(i);
-                  } else {
-                    text = text.substring(0,i) + ' ' + text.substring(i);
-                  }
-                }
-              }
-            }
-            else if(i%lineLength===0) {
-              if(text[i] === ' ') {
-                text = text.substring(0,i) + text.substring(i+1);
-              }
-            }
-          }
-          return text;
-        }
-
         $('#messageForm').submit(function() {
             var messageText = $('#message').val();
             messageText = messageText.toLowerCase();
-            messageText = wrapText(messageText,24);
             $.post("/message",{'message': messageText},function(data) {
               if(data.id) {
                 window.location.href = '/view?id='+data.id;

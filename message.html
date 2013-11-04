@@ -168,6 +168,30 @@
         });
       }
 
+      function wrapText(text,lineLength) {
+        for(var i=0;i<text.length;i++) {
+          if((i+1)%lineLength===0) {
+            if(text[i] !== ' ') {
+              var replacementChar = ' ';
+              if(text[i+1] && charReg.test(text[i+1])) {
+                if(text[i-1] && charReg.test(text[i-1])) {
+                  //This char is in the middle of a word
+                  text = text.substring(0,i) + '-' + text.substring(i);
+                } else {
+                  text = text.substring(0,i) + ' ' + text.substring(i);
+                }
+              }
+            }
+          }
+          else if(i%lineLength===0) {
+            if(text[i] === ' ') {
+              text = text.substring(0,i) + text.substring(i+1);
+            }
+          }
+        }
+        return text;
+      }
+
       function setup() {
         $.ajaxSetup({cache:false});
 
@@ -175,26 +199,35 @@
           var message = $('#encryptedMessage');
           if(data && !data.expired) {
             setupUserInfo();
-
             if(data.guess) {
               guess = data.guess;
             } else {
               guess = new Array(data.encryptedText.length);
             }
-            var tableCols = Math.min(24,data.encryptedText.length);
             var text = data.encryptedText;
-            var tableRows = Math.ceil(text.length/tableCols);
+            console.log('text: ' + data.encryptedText);
+            var tableCols = Math.min(Math.floor(($('#encryptedMessage').width()-1)/22),text.length);
+            var wrappedText = wrapText(text,tableCols);
+            console.log('tablecols: '+tableCols);
+            console.log('wrapped: '+wrappedText);
+            var tableRows = Math.ceil(wrappedText.length/tableCols);
             var tableString = '';
+            var indexText = -1;
+            var indexWrappedText = -1;
             tableString += '<table><tbody><tr><td>&nbsp;</td></tr>';
             for(var r=0;r<tableRows;r++) {
               tableString += '<tr>';
               for(var c=0;c<tableCols;c++) {
                 tableString += '<td class="letterBox">';
-                var letterIndex = r*tableCols+c;
-                var letter = text[letterIndex]? text[letterIndex] : ' ';
+                //Determine if this character was added by the wrapping function
+                if(text[indexText+1] === wrappedText[indexWrappedText+1]) {
+                  indexText++;
+                }
+                indexWrappedText++;
+                var letter = wrappedText[indexWrappedText]? wrappedText[indexWrappedText] : ' ';
                 if(charReg.test(letter)) {
-                  var guessLetter = (guess[letterIndex]&&(guess[letterIndex]!==' '))?guess[letterIndex]:'';
-                  var boxIndex = letterIndex;
+                  var guessLetter = (guess[indexText]&&(guess[indexText]!==' '))?guess[indexText]:'';
+                  var boxIndex = indexText;
                   tableString += '<input class="letterBox letter'+letter+'" name="'+letter+'" maxlength="1" id="'+boxIndex+'" value="'+guessLetter+'">';
                 } else {
                   tableString += letter;
@@ -202,10 +235,11 @@
                 tableString += '</td>';
               }
               tableString += '</tr><tr>';
+              indexWrappedText -= tableCols;
               for(var c=0;c<tableCols;c++) {
+                indexWrappedText++;
                 tableString += '<td class="letterBox">';
-                var letterIndex = r*tableCols+c;
-                var letter = text[letterIndex]? text[letterIndex] : ' ';
+                var letter = wrappedText[indexWrappedText]? wrappedText[indexWrappedText] : ' ';
                 tableString += letter;
                 tableString += '</td>';
               }
