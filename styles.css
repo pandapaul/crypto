@@ -12,9 +12,8 @@ h1 {
 }
 
 div.content {
-  position:relative;
   background: #212121;
-  width:80%;
+  width:551px;
   margin: 0 auto;
   padding: 5px;
   text-align: center;
@@ -29,7 +28,6 @@ div.content {
 }
 
 div.message {
-  width:90%;
   margin: 0 auto;
   font-size: 16px;
 }
@@ -43,7 +41,6 @@ div.hint {
 
 div.colorbox {
   float:left;
-  margin-left:140px;
   width:15px;
   height:22px;
   /* border-radius */
@@ -53,6 +50,7 @@ div.colorbox {
 }
 
 div.userContainer {
+  width:185px;
   margin: 0 auto;
 }
 
@@ -99,6 +97,7 @@ input.username {
   float: left;
   height:16px;
   margin-left: 12px;
+  width: 150px;
 }
 
 input.letterBox {
@@ -128,7 +127,6 @@ input.submit {
   margin-top: 5px;
   margin-right: 20px;
   border-width: 1px;
-  padding: 2px 7px;
   background: #999999;
   background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.35));
   border-bottom-color: #777777;
@@ -171,4 +169,13 @@ a.titleLink {
 
 a.titleLink:hover {
   color: #C3F2B5;
+}
+
+@media only screen and (max-device-width: 800px) {
+  div.content {
+    width: 95%;
+  }
+  body {
+    padding: 2.5%;
+  }
 }

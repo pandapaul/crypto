@@ -3,6 +3,7 @@
   <head>
     <title>Crypto</title>
     <link rel="stylesheet" type="text/css" href="styles.css">
+    <meta name="viewport" content="width=device-width">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script>
       var charReg = /[a-zA-Z]/;
@@ -205,11 +206,8 @@
               guess = new Array(data.encryptedText.length);
             }
             var text = data.encryptedText;
-            console.log('text: ' + data.encryptedText);
-            var tableCols = Math.min(Math.floor(($('#encryptedMessage').width()-1)/22),text.length);
+            var tableCols = Math.min(Math.floor(($('#mainContent').width()-1)/22),text.length);
             var wrappedText = wrapText(text,tableCols);
-            console.log('tablecols: '+tableCols);
-            console.log('wrapped: '+wrappedText);
             var tableRows = Math.ceil(wrappedText.length/tableCols);
             var tableString = '';
             var indexText = -1;
@@ -295,13 +293,13 @@
     </script>
   </head>
   <body>
-    <div class='content'>
+    <div class='content' id='mainContent'>
     <div id='userList' class='userList'></div>
     <h1 id='header'><a href="/" class="titleLink">Crypto</a></h1>
-        <div id='userFormDiv' class='message' style='display:none'><form id='userForm'>
-          <br><div id='colorDiv' class='colorbox' onclick='$(this).css("background-color",getRandomColor());'></div><input type='text' class='username' id='username' placeholder='Your Name' maxlength='100' size='30' autofocus='true'>
-          <br><br><input type='submit' id='usernameButton' value='Continue' class='submit'>
-        </form></div>
+        <div id='userFormDiv' class='userContainer' style='display:none'><form id='userForm'>
+          <br><div id='colorDiv' class='colorbox' onclick='$(this).css("background-color",getRandomColor());'></div><input type='text' class='username' id='username' placeholder='Your Name' maxlength='100' size='30' autofocus='true'></div>
+          <br>
+        </form>
         <div id='encryptedMessage' class='message'></div>
         <div id='formDiv' style='display:none'><br>
           <div id='hint' class='hint'></div>
