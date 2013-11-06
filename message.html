@@ -185,8 +185,9 @@
             user.color = readCookie('cryptoUsercolor');
             if(!user.name || !user.color) {
               setupUserInfo();
+            } else {
+              $('#formDiv').show();
             }
-            $('#formDiv').show();
             $('#messageForm').submit(function() {
               if($('#checkButton').val()!=='Burn') {
                 setCheckButton('loading');
