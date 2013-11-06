@@ -48,6 +48,7 @@ function Message(text) {
 		doc['timestamp'] = doc['date'].getTime();
 		doc['checksLeft'] = 3;
 		doc['allUsers'] = [];
+		doc['active'] = false;
 		return doc;
 	};
 	this.createFromDoc = function(doc) {
@@ -93,25 +94,20 @@ function retrieve(id, callback) {
 }
 
 //Update a message in the mongo db
-function update(id, updateCommand, callback) {
-	try {
-		id = new ObjectID(id);
-	} catch (e) {
-		return;
-	}
+function update(query, updateCommand, callback) {
 	var timestamp = new Date().getTime();
-	if(updateCommand.$set) {
-		updateCommand.$set.timestamp = timestamp;
-	} else {
-		updateCommand.$set = {'timestamp':timestamp};
-	}
+	// if(updateCommand.$set) {
+	// 	updateCommand.$set.timestamp = timestamp;
+	// } else {
+	// 	updateCommand.$set = {'timestamp':timestamp};
+	// }
 	MongoClient.connect(dbAddress, function(err, db) {
 		if(err) throw err;
 		var collection = db.collection('messages');
-		collection.update({'_id':id},updateCommand,function(err,result) {
+		collection.update(query,updateCommand,function(err,result) {
 			if(err) throw err;
 		});
-		callback(timestamp);
+		callback();
 		db.close();
 	});
 }
@@ -152,20 +148,26 @@ function getMessage(req,res) {
 	if(req.query.id && req.query.user) {
 		retrieve(req.query.id,function(doc) {
 			if(doc) {
+				var timestamp = new Date().getTime();
+				if(doc['allUsers'].length > 0) {
+					//Kick inactive users
+					var updateQuery = {'_id':new ObjectID(req.query.id)};
+					var updateCommand = {$set:{'timestamp':timestamp}, $pull:{'allUsers':{'timestamp':{$lt:timestamp - 5000}}}};
+					update(updateQuery,updateCommand,function(){});
+				}
 				if(req.query.user.name && req.query.user.color) {
-					var index=-1;
-					for(var i=0;i<doc['allUsers'].length;i++) {
-						if(doc['allUsers'][i].name === req.query.user.name && doc['allUsers'][i].color === req.query.user.color) {
-							index = i;
-							break;
-						}
-					}
-					if(index === -1) {
+					var index = indexOfUser(doc['allUsers'],req.query.user);
+					var updateQuery, updateCommand;
+					if(index > -1) {
+						//The db doc already knows of this user, so just update the user timestamp
+						updateQuery = {'_id':new ObjectID(req.query.id), 'allUsers.name':req.query.user.name, 'allUsers.color':req.query.user.color};
+						updateCommand = {$set:{'allUsers.$.timestamp':timestamp}};
+						update(updateQuery, updateCommand, function(){});
+					} else {
 						//The db doc does not know of this user, add him/her
-						var updateCommand = {$addToSet:{'allUsers':req.query.user}};
-						update(req.query.id, updateCommand, function(ts){
-							setTimeout(checkInactive(req.query.id,req.query.user),5000);		
-						});
+						updateQuery = {'_id':new ObjectID(req.query.id)};
+						updateCommand = {$addToSet:{'allUsers':req.query.user}};
+						update(updateQuery, updateCommand, function(){});
 					}
 				}
 				delete doc.text;
@@ -179,6 +181,18 @@ function getMessage(req,res) {
 	}
 }
 
+//Get the index of matching user in allUsers array
+function indexOfUser(allUsers,user) {
+	var index = -1;
+	for(var i=0;i<allUsers.length;i++) {
+		if(allUsers[i].name === user.name && allUsers[i].color === user.color) {
+			index = i;
+			break;
+		}
+	}
+	return index;
+}
+
 //Handle GET /view
 function getView(req,res) {
 	res.sendfile('message.html');
@@ -187,8 +201,10 @@ function getView(req,res) {
 //Handle POST /guess
 function postGuess(req,res) {
 	if(req.body.id && req.body.guess) {
-		var updateCommand = {$set:{'guess':req.body.guess,'user':req.body.user}};
-		update(req.body.id, updateCommand, function(timestamp) {
+		var updateQuery = {'_id':new ObjectID(req.body.id)};
+		var timestamp = new Date().getTime();
+		var updateCommand = {$set:{'timestamp':timestamp,'guess':req.body.guess,'user':req.body.user}};
+		update(updateQuery, updateCommand, function() {
 			res.json({'timestamp':timestamp});
 		});
 	} else {
@@ -210,10 +226,11 @@ function postCheck(req,res) {
 					if(matched.indexOf(false)===-1) {
 						checksLeft = 0;
 					}
-					var updateData = {'matched':matched,'checksLeft':checksLeft,'user':req.body.user};
+					var updateQuery = {'_id':new ObjectID(req.body.id)};
+					var timestamp = new Date().getTime();
+					var updateData = {'timestamp':timestamp,'matched':matched,'checksLeft':checksLeft,'user':req.body.user};
 					var updateCommand = {$set:updateData};
-					update(req.body.id, updateCommand, function(timestamp) {
-						updateData.timestamp = timestamp;
+					update(updateQuery, updateCommand, function() {
 						res.json(updateData);
 					});
 				} else {
@@ -229,26 +246,14 @@ function postCheck(req,res) {
 	}
 }
 
-//Check for inactive user
-function checkInactive(id,user) {
-	//TODO: implement
-}
-
-//Handle POST /leave
-function postLeave(req,res) {
-	if(req.body.id && req.body.user) {
-		var updateData = {'allUsers':req.body.user};
-		var updateCommand = {$pull:updateData};
-		update(req.body.id, updateCommand, function(timestamp) {
-			updateData.timestamp = timestamp;
-			res.json(updateData);
-		});
-	}
-}
-
 //Handle GET styles.css
 function getStyles(req,res) {
 	res.sendfile('styles.css');
+}
+
+//Handle GET cookies.js
+function getCookiesJS(req,res) {
+	res.sendfile('cookies.js');
 }
 
 //Handle 404s
@@ -267,6 +272,7 @@ app.get('/message', getMessage);
 app.get('/view', getView);
 app.post('/guess', postGuess);
 app.post('/check',postCheck);
+app.get('/cookies.js', getCookiesJS);
 app.use(express.favicon('favicon.ico'));
 app.use(pageNotFound);
 

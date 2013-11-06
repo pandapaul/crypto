@@ -4,6 +4,7 @@
     <title>Crypto</title>
     <link rel="stylesheet" type="text/css" href="styles.css">
     <meta name="viewport" content="width=device-width">
+    <script src="cookies.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script>
       var charReg = /[a-zA-Z]/;
@@ -14,6 +15,12 @@
       var allUsers = [];
       var checksLeft=-1;
 
+      function editUserInfo() {
+        $('#colorDiv').css('background-color',user.color);
+        $('#username').val(user.name);
+        $('#userFormDiv').toggle();
+      }
+
       function refresh(data) {
         if(data.allUsers && (data.allUsers!==allUsers)) {
           //Update user list
@@ -22,7 +29,11 @@
           userlistdiv.html('');
           for(var i=0;i<allUsers.length;i++) {
             var aUser = allUsers[i];
-            var userdivstring = '<div style="background-color:'+aUser.color+'" title="'+aUser.name+'" class="userBox"></div>';
+            var userdivstring = '<div style="background-color:'+aUser.color+'" title="'+aUser.name+'" class="userBox"';
+            if(aUser.name === user.name && aUser.color === user.color) {
+              userdivstring += ' onclick="editUserInfo()"';
+            }
+            userdivstring += '></div>';
             userlistdiv.append(userdivstring);
           }
         }
@@ -118,8 +129,30 @@
 
       function setupUserInfo() {
         $('#colorDiv').css('background-color',getRandomColor());
-        $('#encryptedMessage').css('display','none');
-        $('#userFormDiv').css('display','block');
+        $('#encryptedMessage').hide();
+        $('#userFormDiv').show();
+      }
+
+      function wrapText(text,lineLength) {
+        for(var i=0;i<text.length;i++) {
+          if((i+1)%lineLength===0) {
+            if(text[i] !== ' ') {
+              if(text[i+1] && charReg.test(text[i+1])) {
+                if(text[i-1] && charReg.test(text[i-1])) {
+                  //This char is in the middle of a word
+                  text = text.substring(0,i) + '-' + text.substring(i);
+                } else {
+                  text = text.substring(0,i) + ' ' + text.substring(i);
+                }
+              }
+            }
+          }
+        }
+        return text;
+      }
+
+      function setup() {
+        $.ajaxSetup({cache:false});
 
         $('#userForm').submit(function() {
           user.color = $('#colorDiv').css('background-color');
@@ -128,9 +161,11 @@
             var strippedUsername = username.replace('<','&#60;');
             strippedUsername.replace('>','&#62;');
             user.name = strippedUsername;
-            $('#userFormDiv').css('display','none');
-            $('#encryptedMessage').css('display','block');
-            $('#formDiv').css('display','block');
+            createCookie('cryptoUsername',user.name);
+            createCookie('cryptoUsercolor',user.color);
+            $('#userFormDiv').hide();
+            $('#encryptedMessage').show();
+            $('#formDiv').show();
           }
           if (username === '')  {
             $.get('http://georules-funnynames.jit.su/api', {}, function(data) {
@@ -143,70 +178,46 @@
           return false;
         });
 
-        $('#messageForm').submit(function() {
-          if($('#checkButton').val()!=='Burn') {
-            setCheckButton('loading');
-          }
-          if(!guess) {
-            return false;
-          }
-          guess = fluffArray(guess);
-          $.post("/check",{'id': id, 'guess': guess, 'user': user}, function(data) {
-              if(data.timestamp) {
-                timestamp = data.timestamp;
-              }
-              if(data.checksLeft >= 0) {
-                setCheckButton(data.checksLeft);
-              }
-              if(data.matched) {
-                setCorrectLetters(data.matched);
-              }
-              if(data.expired) {
-                expirePage();
-              }
-            });
-          return false;
-        });
-      }
-
-      function wrapText(text,lineLength) {
-        for(var i=0;i<text.length;i++) {
-          if((i+1)%lineLength===0) {
-            if(text[i] !== ' ') {
-              var replacementChar = ' ';
-              if(text[i+1] && charReg.test(text[i+1])) {
-                if(text[i-1] && charReg.test(text[i-1])) {
-                  //This char is in the middle of a word
-                  text = text.substring(0,i) + '-' + text.substring(i);
-                } else {
-                  text = text.substring(0,i) + ' ' + text.substring(i);
-                }
-              }
-            }
-          }
-          else if(i%lineLength===0) {
-            if(text[i] === ' ') {
-              text = text.substring(0,i) + text.substring(i+1);
-            }
-          }
-        }
-        return text;
-      }
-
-      function setup() {
-        $.ajaxSetup({cache:false});
-
         $.get('/message',{'id':id,'user':user},function(data) {
           var message = $('#encryptedMessage');
           if(data && !data.expired) {
-            setupUserInfo();
+            user.name = readCookie('cryptoUsername');
+            user.color = readCookie('cryptoUsercolor');
+            if(!user.name || !user.color) {
+              setupUserInfo();
+            }
+            $('#formDiv').show();
+            $('#messageForm').submit(function() {
+              if($('#checkButton').val()!=='Burn') {
+                setCheckButton('loading');
+              }
+              if(!guess) {
+                return false;
+              }
+              guess = fluffArray(guess);
+              $.post("/check",{'id': id, 'guess': guess, 'user': user}, function(data) {
+                  if(data.timestamp) {
+                    timestamp = data.timestamp;
+                  }
+                  if(data.checksLeft >= 0) {
+                    setCheckButton(data.checksLeft);
+                  }
+                  if(data.matched) {
+                    setCorrectLetters(data.matched);
+                  }
+                  if(data.expired) {
+                    expirePage();
+                  }
+                });
+              return false;
+            });
             if(data.guess) {
               guess = data.guess;
             } else {
               guess = new Array(data.encryptedText.length);
             }
             var text = data.encryptedText;
-            var tableCols = Math.min(Math.floor(($('#mainContent').width()-1)/22),text.length);
+            var tableCols = Math.min(Math.floor(($('#mainContent').width()-23)/22),text.length);
             var wrappedText = wrapText(text,tableCols);
             var tableRows = Math.ceil(wrappedText.length/tableCols);
             var tableString = '';
@@ -215,6 +226,7 @@
             tableString += '<table><tbody><tr><td>&nbsp;</td></tr>';
             for(var r=0;r<tableRows;r++) {
               tableString += '<tr>';
+              var tindex = indexWrappedText;
               for(var c=0;c<tableCols;c++) {
                 tableString += '<td class="letterBox">';
                 //Determine if this character was added by the wrapping function
@@ -233,7 +245,7 @@
                 tableString += '</td>';
               }
               tableString += '</tr><tr>';
-              indexWrappedText -= tableCols;
+              indexWrappedText = tindex;
               for(var c=0;c<tableCols;c++) {
                 indexWrappedText++;
                 tableString += '<td class="letterBox">';
@@ -276,8 +288,8 @@
             refresh(data);
             window.setInterval(poll,1500);
           } else {
-            $('#userFormDiv').css('display','none');
-            $('#encryptedMessage').css('display','block');
+            $('#userFormDiv').hide();
+            $('#encryptedMessage').show();
             message.html('message expired<p>');
           }
         });
