@@ -95,20 +95,27 @@ function retrieve(id, callback) {
 
 //Update a message in the mongo db
 function update(query, updateCommand, callback) {
-	var timestamp = new Date().getTime();
-	// if(updateCommand.$set) {
-	// 	updateCommand.$set.timestamp = timestamp;
-	// } else {
-	// 	updateCommand.$set = {'timestamp':timestamp};
-	// }
 	MongoClient.connect(dbAddress, function(err, db) {
 		if(err) throw err;
 		var collection = db.collection('messages');
 		collection.update(query,updateCommand,function(err,result) {
 			if(err) throw err;
+			callback();
+			db.close();
 		});
-		callback();
-		db.close();
+	});
+}
+
+//Update a message in the mongo db and retreive its contents
+function findAndModify(query, sort, updateCommand, callback) {
+	MongoClient.connect(dbAddress, function(err, db) {
+		if(err) throw err;
+		var collection = db.collection('messages');
+		collection.findAndModify(query,sort,updateCommand,function(err,object) {
+			if(err) throw err;
+			callback(object);
+			db.close();
+		});
 	});
 }
 
@@ -146,15 +153,13 @@ function postMessage(req,res) {
 //Handle GET /message
 function getMessage(req,res) {
 	if(req.query.id && req.query.user) {
-		retrieve(req.query.id,function(doc) {
+		var timestamp = new Date().getTime();
+		//Kick inactive users
+		var updateQuery = {'_id':new ObjectID(req.query.id)};
+		var sort = {'sort':''};
+		var updateCommand = {$pull:{'allUsers':{'timestamp':{$lt:timestamp - 5000}}}};
+		findAndModify(updateQuery,sort,updateCommand,function(doc){
 			if(doc) {
-				var timestamp = new Date().getTime();
-				if(doc['allUsers'].length > 0) {
-					//Kick inactive users
-					var updateQuery = {'_id':new ObjectID(req.query.id)};
-					var updateCommand = {$set:{'timestamp':timestamp}, $pull:{'allUsers':{'timestamp':{$lt:timestamp - 5000}}}};
-					update(updateQuery,updateCommand,function(){});
-				}
 				if(req.query.user.name && req.query.user.color) {
 					var index = indexOfUser(doc['allUsers'],req.query.user);
 					var updateQuery, updateCommand;
