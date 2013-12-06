@@ -11,67 +11,7 @@
       var timestamp = 0;
       var guess = [];
       var id = getURLParameter('id');
-      var user = {name:'',color:''};
-      var allUsers = [];
       var checksLeft=-1;
-
-      function editUserInfo() {
-        $('#colorDiv').css('background-color',user.color);
-        $('#username').val(user.name);
-        $('#userFormDiv').toggle();
-      }
-
-      function refresh(data) {
-        if(data.allUsers && (data.allUsers!==allUsers)) {
-          //Update user list
-          allUsers = data.allUsers;
-          var userlistdiv = $('#userList');
-          userlistdiv.html('');
-          for(var i=0;i<allUsers.length;i++) {
-            var aUser = allUsers[i];
-            var userdivstring = '<div style="background-color:'+aUser.color+'" title="'+aUser.name+'" class="userBox"';
-            if(aUser.name === user.name && aUser.color === user.color) {
-              userdivstring += ' onclick="editUserInfo()"';
-            }
-            userdivstring += '></div>';
-            userlistdiv.append(userdivstring);
-          }
-        }
-        if(data.timestamp <= timestamp) {
-          return;
-        }
-
-        timestamp = data.timestamp;
-        if(checksLeft !== data.checksLeft) {
-          checksLeft = data.checksLeft;
-          if(data.checksLeft >= 0) {
-            setCheckButton(data.checksLeft);
-          }
-        }
-
-        if(data.guess && (data.guess !== guess)) {
-          $('input.letterBox').each(function(index) {
-            if(data.guess[this.id]!==this.value && !(data.guess[this.id]===' ' && this.value==='')) {
-              this.value = data.guess[this.id]===' '?'':data.guess[this.id];
-              guess[this.id] = this.value;
-              this.style['background-color'] = data.user.color;
-            }
-          });
-        }
-        if(data.matched) {
-          setCorrectLetters(data.matched);
-        }
-      }
-
-      function poll() {
-        $.get('/message',{'id':id,'user':user},function(data) {
-          if(data.expired) {
-            expirePage();
-          } else {
-            refresh(data);
-          }
-        });
-      }
 
       function expirePage() {
         location.reload();
@@ -84,26 +24,6 @@
           }
         }
         return array;
-      }
-
-      function postGuess() {
-        guess = fluffArray(guess);
-        $.post("/guess",{'id': id , 'guess': guess, 'user': user}, function(data) {
-          if(data.timestamp) {
-            timestamp = data.timestamp;
-          }
-        });
-      }
-
-      function setCheckButton(checksLeft) {
-        if(checksLeft === 0) {
-            $('#checkButton').val('Burn');
-            $('#checkButton').addClass('burn');
-          } else if(checksLeft === 'loading') {
-            $('#checkButton').val('Checking...');
-          } else {
-            $('#checkButton').val(checksLeft + ' Checks Left');
-          }
       }
 
       function setCorrectLetters(matched) {
@@ -150,6 +70,94 @@
       function setup() {
         $.ajaxSetup({cache:false});
 
+        var user = {name:'',color:''};
+      	var allUsers = [];
+      	var limited = true, burnable = true;
+
+      	function setCheckButton(checksLeft) {
+      		console.log('checksLeft = ' + checksLeft);
+	        if(checksLeft === 0 && burnable === 'true') {
+	          $('#checkButton').val('Burn');
+	          $('#checkButton').addClass('burn');
+		    } else if(checksLeft === 'loading') {
+		      $('#checkButton').val('Checking...');
+		    } else if(limited === 'true') {
+		      $('#checkButton').val(checksLeft + ' Checks Left');
+		      if(checksLeft === 0) {
+		      	$('#checkButton').attr('disabled',true);
+		      }
+		    } else {
+		      $('#checkButton').val('Check');
+		    }
+      	}
+
+        function postGuess() {
+	        guess = fluffArray(guess);
+	        $.post("/guess",{'id': id , 'guess': guess, 'user': user}, function(data) {
+	          if(data.timestamp) {
+	            timestamp = data.timestamp;
+	          }
+	        });
+	      }
+
+	      function editUserInfo() {
+        $('#colorDiv').css('background-color',user.color);
+        $('#username').val(user.name);
+        $('#userFormDiv').toggle();
+      }
+
+      function refresh(data) {
+        if(data.allUsers && (data.allUsers!==allUsers)) {
+          //Update user list
+          allUsers = data.allUsers;
+          var userlistdiv = $('#userList');
+          userlistdiv.html('');
+          for(var i=0;i<allUsers.length;i++) {
+            var aUser = allUsers[i];
+            var userdivstring = '<div style="background-color:'+aUser.color+'" title="'+aUser.name+'" class="userBox"';
+            if(aUser.name === user.name && aUser.color === user.color) {
+              userdivstring += ' onclick="editUserInfo()"';
+            }
+            userdivstring += '></div>';
+            userlistdiv.append(userdivstring);
+          }
+        }
+        if(data.timestamp <= timestamp) {
+          return;
+        }
+
+        timestamp = data.timestamp;
+        limited = data.limited;
+        burnable = data.burnable;
+        if(checksLeft !== data.checksLeft) {
+          checksLeft = data.checksLeft;
+          setCheckButton(data.checksLeft);
+        }
+
+        if(data.guess && (data.guess !== guess)) {
+          $('input.letterBox').each(function(index) {
+            if(data.guess[this.id]!==this.value && !(data.guess[this.id]===' ' && this.value==='')) {
+              this.value = data.guess[this.id]===' '?'':data.guess[this.id];
+              guess[this.id] = this.value;
+              this.style['background-color'] = data.user.color;
+            }
+          });
+        }
+        if(data.matched) {
+          setCorrectLetters(data.matched);
+        }
+      }
+
+      function poll() {
+        $.get('/message',{'id':id,'user':user},function(data) {
+          if(data.expired) {
+            expirePage();
+          } else {
+            refresh(data);
+          }
+        });
+      }
+
         $('#userForm').submit(function() {
           user.color = $('#colorDiv').css('background-color');
           var username = $("#username").val()
@@ -185,9 +193,7 @@
               $('#formDiv').show();
             }
             $('#messageForm').submit(function() {
-              if($('#checkButton').val()!=='Burn') {
-                setCheckButton('loading');
-              }
+              setCheckButton('loading');
               if(!guess) {
                 return false;
               }
@@ -196,9 +202,7 @@
                   if(data.timestamp) {
                     timestamp = data.timestamp;
                   }
-                  if(data.checksLeft >= 0) {
-                    setCheckButton(data.checksLeft);
-                  }
+                  setCheckButton(data.checksLeft);
                   if(data.matched) {
                     setCorrectLetters(data.matched);
                   }

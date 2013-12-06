@@ -4,13 +4,15 @@ var
 	MongoClient = require('mongodb').MongoClient,
 	ObjectID = require('mongodb').ObjectID,
 	dbAddress = 'mongodb://user:pass@ds047008.mongolab.com:47008/nodejitsu_pandapaul_nodejitsudb1745758801';
-	// dbAddress = 'mongodb://127.0.0.1:27017/crypto';
+	//dbAddress = 'mongodb://127.0.0.1:27017/crypto';
 
 //Message object constructor
 function Message(text) {
 	this.text = text;
 	this.encryptedText = "";
 	this.hint = "";
+	this.burnable = true;
+	this.limited = true;
 	this.encrypt = function() {
 		var unique = [];
 		var cryptoChars = [];
@@ -48,7 +50,8 @@ function Message(text) {
 		doc['timestamp'] = doc['date'].getTime();
 		doc['checksLeft'] = 3;
 		doc['allUsers'] = [];
-		doc['active'] = false;
+		doc['burnable'] = this.burnable;
+		doc['limited'] = this.limited;
 		return doc;
 	};
 	this.createFromDoc = function(doc) {
@@ -145,6 +148,8 @@ function getMain(req,res) {
 function postMessage(req,res) {
 	var message = new Message(req.body.message);
 	message.encrypt();
+	message.burnable = req.body.burnable;
+	message.limited = req.body.limited;
 	store(message, function() {
 		res.json(message);
 	});
@@ -224,11 +229,14 @@ function postCheck(req,res) {
 			if(doc) {
 				if(doc['checksLeft'] > 0) {
 					var matched = [];
-					var checksLeft = doc['checksLeft']-1;
+					var checksLeft = doc['checksLeft']
+					if(doc['limited'] === 'true') {
+						checksLeft--;
+					}
 					for(var i=0;i<doc['text'].length;i++) {
 						matched.push((req.body.guess[i] === doc['text'][i]) || /[^a-zA-Z]/.test(doc['text'][i]));
 					}
-					if(matched.indexOf(false)===-1) {
+					if(matched.indexOf(false)===-1 && doc['burnable'] === 'true') {
 						checksLeft = 0;
 					}
 					var updateQuery = {'_id':new ObjectID(req.body.id)};
@@ -238,9 +246,11 @@ function postCheck(req,res) {
 					update(updateQuery, updateCommand, function() {
 						res.json(updateData);
 					});
-				} else {
+				} else if(doc['burnable'] === 'true') {
 					remove(req.body.id);
 					res.json({'expired':true});
+				} else {
+					res.end();
 				}
 			} else {
 				res.json({'expired':true});

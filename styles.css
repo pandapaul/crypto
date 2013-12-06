@@ -147,7 +147,7 @@ input.submit {
   border-top-width: 1px;
 }
 
-input.submit:hover {
+input.submit:enabled:hover {
   background: #A3D295;
   background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.35));
 }

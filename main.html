@@ -12,7 +12,8 @@
         $('#messageForm').submit(function() {
             var messageText = $('#message').val();
             messageText = messageText.toLowerCase();
-            $.post("/message",{'message': messageText},function(data) {
+            var messageData = {'message': messageText, 'burnable':$('#burnable').is(':checked'), 'limited':$('#limited').is(':checked')};
+            $.post("/message",messageData,function(data) {
               if(data.id) {
                 window.location.href = '/view?id='+data.id;
               } else {
@@ -31,6 +32,7 @@
     	<h1 id='header'><a href="/" class="titleLink">Crypto</a></h1>
       		<form id='messageForm'>
       			<input type='text' autofocus='true' id='message' placeholder='message' required='true' maxlength='1024' class='message'>
+            <br><input type="checkbox" id='burnable' checked>Burnable <input type="checkbox" id='limited' checked>Limit Checks
             <br><input type='submit' class='submit' value='Encrypt'>
           </form>
     </div>
