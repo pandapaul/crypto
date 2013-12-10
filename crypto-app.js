@@ -271,6 +271,11 @@ function getCookiesJS(req,res) {
 	res.sendfile('cookies.js');
 }
 
+//Handle GET about
+function getAbout(req,res) {
+	res.sendfile('about.html');
+}
+
 //Handle 404s
 function pageNotFound(req,res,next) {
 	res.sendfile('404.html');
@@ -288,6 +293,7 @@ app.get('/view', getView);
 app.post('/guess', postGuess);
 app.post('/check',postCheck);
 app.get('/cookies.js', getCookiesJS);
+app.get('/about', getAbout)
 app.use(express.favicon('favicon.ico'));
 app.use(pageNotFound);
 

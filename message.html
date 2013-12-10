@@ -67,6 +67,13 @@
         return text;
       }
 
+      function editUserInfo() {
+	  	var user = {name : readCookie('cryptoUsername'), color : readCookie('cryptoUsercolor')};
+        $('#colorDiv').css('background-color',user.color);
+        $('#username').val(user.name);
+        $('#userFormDiv').toggle();
+      }
+
       function setup() {
         $.ajaxSetup({cache:false});
 
@@ -75,7 +82,6 @@
       	var limited = true, burnable = true;
 
       	function setCheckButton(checksLeft) {
-      		console.log('checksLeft = ' + checksLeft);
 	        if(checksLeft === 0 && burnable === 'true') {
 	          $('#checkButton').val('Burn');
 	          $('#checkButton').addClass('burn');
@@ -99,12 +105,6 @@
 	          }
 	        });
 	      }
-
-	      function editUserInfo() {
-        $('#colorDiv').css('background-color',user.color);
-        $('#username').val(user.name);
-        $('#userFormDiv').toggle();
-      }
 
       function refresh(data) {
         if(data.allUsers && (data.allUsers!==allUsers)) {
@@ -307,8 +307,8 @@
   </head>
   <body>
     <div class='content' id='mainContent'>
-    <div id='userList' class='userList'></div>
-    <h1 id='header'><a href="/" class="titleLink">Crypto</a></h1>
+	    <div id='userList' class='userList'></div>
+	    <h1 id='header'><a href="/" class="titleLink">Crypto</a></h1>
         <div id='userFormDiv' class='userContainer' style='display:none'><form id='userForm'>
           <br><div id='colorDiv' class='colorbox' title='Your Color' onclick='$(this).css("background-color",getRandomColor());'></div><input type='text' class='username' id='username' placeholder='Your Name' maxlength='100' size='30' autofocus='true'></div>
           <br>
@@ -319,5 +319,6 @@
     		  <form id='messageForm'><input id='checkButton' type='submit' class='submit' value='Check'></form>
         </div>
     </div>
+  	<div class='footer'>© <a href='https://github.com/pandapaul'>Paul Anderson</a>, 2013&nbsp; |&nbsp; <a href='about'>About</a></div>
   </body>
 </html>
