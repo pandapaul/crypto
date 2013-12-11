@@ -133,11 +133,12 @@ input.submit {
   float:right;
   color:#F0F6FF;
   font-weight: bold;
-  margin-top: 5px;
+  padding-top:3px;
+  margin-top: 6px;
   margin-right: 20px;
   border-width: 1px;
   background: #999999;
-  background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.35));
+  background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.5));
   border-bottom-color: #777777;
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
@@ -158,17 +159,17 @@ input.submit {
 
 input.submit:enabled:hover {
   background: #A3D295;
-  background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.35));
+  background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.5));
 }
 
 input.submit.burn {
   background: #990000;
-  background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.35));
+  background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.5));
 }
 
 input.submit.burn:hover {
   background: #B30000;
-  background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.35));
+  background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.5));
 }
 
 a {

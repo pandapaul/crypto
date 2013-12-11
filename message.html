@@ -85,16 +85,16 @@
 	        if(checksLeft === 0 && burnable === 'true') {
 	          $('#checkButton').val('Burn');
 	          $('#checkButton').addClass('burn');
-		    } else if(checksLeft === 'loading') {
-		      $('#checkButton').val('Checking...');
-		    } else if(limited === 'true') {
-		      $('#checkButton').val(checksLeft + ' Checks Left');
-		      if(checksLeft === 0) {
-		      	$('#checkButton').attr('disabled',true);
-		      }
-		    } else {
-		      $('#checkButton').val('Check');
-		    }
+  		    } else if(checksLeft === 'loading') {
+  		      $('#checkButton').val('Checking...');
+  		    } else if(limited === 'true') {
+  		      $('#checkButton').val(checksLeft + ' Checks Left');
+  		      if(checksLeft === 0) {
+  		      	$('#checkButton').attr('disabled',true);
+  		      }
+  		    } else {
+  		      $('#checkButton').val('Infinite Checks Left');
+  		    }
       	}
 
         function postGuess() {
