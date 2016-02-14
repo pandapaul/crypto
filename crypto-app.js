@@ -1,9 +1,10 @@
 var
 	express = require('express'),
 	app = express(),
-	MongoClient = require('mongodb').MongoClient,
-	ObjectID = require('mongodb').ObjectID,
-	dbAddress = 'mongodb://user:pass@ds047008.mongolab.com:47008/nodejitsu_pandapaul_nodejitsudb1745758801';
+	mongo = require('mongodb'),
+	MongoClient = mongo.MongoClient,
+	ObjectID = mongo.ObjectID,
+	dbAddress = process.env.MONGOLAB_URI;
 	//dbAddress = 'mongodb://127.0.0.1:27017/crypto';
 
 //Message object constructor
@@ -43,15 +44,15 @@ function Message(text) {
 	};
 	this.createDoc = function() {
 		var doc = {};
-		doc['text'] = this.text;
-		doc['encryptedText'] = this.encryptedText;
-		doc['hint'] = this.hint;
-		doc['date'] = new Date();
-		doc['timestamp'] = doc['date'].getTime();
-		doc['checksLeft'] = 3;
-		doc['allUsers'] = [];
-		doc['burnable'] = this.burnable;
-		doc['limited'] = this.limited;
+		doc.text = this.text;
+		doc.encryptedText = this.encryptedText;
+		doc.hint = this.hint;
+		doc.date = new Date();
+		doc.timestamp = doc.date.getTime();
+		doc.checksLeft = 3;
+		doc.allUsers = [];
+		doc.burnable = this.burnable;
+		doc.limited = this.limited;
 		return doc;
 	};
 	this.createFromDoc = function(doc) {
@@ -166,7 +167,7 @@ function getMessage(req,res) {
 		findAndModify(updateQuery,sort,updateCommand,function(doc){
 			if(doc) {
 				if(req.query.user.name && req.query.user.color) {
-					var index = indexOfUser(doc['allUsers'],req.query.user);
+					var index = indexOfUser(doc.allUsers,req.query.user);
 					var updateQuery, updateCommand;
 					if(index > -1) {
 						//The db doc already knows of this user, so just update the user timestamp
@@ -227,16 +228,16 @@ function postCheck(req,res) {
 	if(req.body.id && req.body.guess) {
 		retrieve(req.body.id,function(doc) {
 			if(doc) {
-				if(doc['checksLeft'] > 0) {
+				if(doc.checksLeft > 0) {
 					var matched = [];
-					var checksLeft = doc['checksLeft']
-					if(doc['limited'] === 'true') {
+					var checksLeft = doc.checksLeft;
+					if(doc.limited === 'true') {
 						checksLeft--;
 					}
-					for(var i=0;i<doc['text'].length;i++) {
-						matched.push((req.body.guess[i] === doc['text'][i]) || /[^a-zA-Z]/.test(doc['text'][i]));
+					for(var i=0;i<doc.text.length;i++) {
+						matched.push((req.body.guess[i] === doc.text[i]) || /[^a-zA-Z]/.test(doc.text[i]));
 					}
-					if(matched.indexOf(false)===-1 && doc['burnable'] === 'true') {
+					if(matched.indexOf(false)===-1 && doc.burnable === 'true') {
 						checksLeft = 0;
 					}
 					var updateQuery = {'_id':new ObjectID(req.body.id)};
@@ -246,7 +247,7 @@ function postCheck(req,res) {
 					update(updateQuery, updateCommand, function() {
 						res.json(updateData);
 					});
-				} else if(doc['burnable'] === 'true') {
+				} else if(doc.burnable === 'true') {
 					remove(req.body.id);
 					res.json({'expired':true});
 				} else {
@@ -293,7 +294,7 @@ app.get('/view', getView);
 app.post('/guess', postGuess);
 app.post('/check',postCheck);
 app.get('/cookies.js', getCookiesJS);
-app.get('/about', getAbout)
+app.get('/about', getAbout);
 app.use(express.favicon('favicon.ico'));
 app.use(pageNotFound);
 
