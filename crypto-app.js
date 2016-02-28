@@ -71,7 +71,7 @@ function store(message, callback) {
 		collection.insert(message.createDoc(), function(err,result) {
 			if(err) throw err;
 			else if(result) {
-				message.id = result[0]._id;
+				message.id = result.ops[0]._id;
 			}
 			callback();
 			db.close();
@@ -135,8 +135,8 @@ function remove(id) {
 		var collection = db.collection('messages');
 		collection.remove({'_id':id}, function(err,result) {
 			if(err) throw err;
+			db.close();
 		});
-		db.close();
 	});
 }
 
@@ -162,9 +162,10 @@ function getMessage(req,res) {
 		var timestamp = new Date().getTime();
 		//Kick inactive users
 		var updateQuery = {'_id':new ObjectID(req.query.id)};
-		var sort = {'sort':''};
+		var sort = {};
 		var updateCommand = {$pull:{'allUsers':{'timestamp':{$lt:timestamp - 5000}}}};
-		findAndModify(updateQuery,sort,updateCommand,function(doc){
+		findAndModify(updateQuery,sort,updateCommand,function(data){
+			var doc = data && data.value;
 			if(doc) {
 				if(req.query.user.name && req.query.user.color) {
 					var index = indexOfUser(doc.allUsers,req.query.user);
