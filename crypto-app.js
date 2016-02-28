@@ -299,6 +299,6 @@ app.use(express.favicon('favicon.ico'));
 app.use(pageNotFound);
 
 //Listen
-var listenPort = 8000;
+var listenPort = process.env.PORT || 5000;
 app.listen(listenPort);
 console.log('Listening on port ' + listenPort);
