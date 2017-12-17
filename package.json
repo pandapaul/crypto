@@ -2,16 +2,11 @@
 	"name": "crypto",
 	"description": "Cryptogram app",
 	"version": "0.1.1",
-	"private": false,
-	"dependencies": {
-		"express": "3.4.2",
-		"mongodb": "2.1.3"
-	},
-	"subdomain": "pandapaul-crypto",
 	"scripts": {
 		"start": "node crypto-app.js"
 	},
 	"engines": {
-		"node": "5.7.x"
-	}
+		"node": "8.9.x"
+	},
+	"dependencies": {}
 }
