@@ -3,7 +3,9 @@
 	"description": "Cryptogram app",
 	"version": "0.1.1",
 	"scripts": {
-		"start": "node crypto-app.js"
+		"start": "node crypto-app.js",
+		"lint": "standard",
+		"test": "npm run lint && ava"
 	},
 	"engines": {
 		"node": "8.9.x"
