@@ -8,5 +8,14 @@
 	"engines": {
 		"node": "8.9.x"
 	},
-	"dependencies": {}
+	"dependencies": {
+		"bookshelf": "^0.12.0",
+		"knex": "^0.14.2",
+		"koa": "^2.4.1",
+		"pg": "^7.4.0"
+	},
+	"devDependencies": {
+		"ava": "^0.24.0",
+		"standard": "^10.0.3"
+	}
 }
