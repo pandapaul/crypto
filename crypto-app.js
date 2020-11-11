@@ -1,82 +1,36 @@
-var
+const
 	express = require('express'),
+	bodyParser = require('body-parser'),
+	favicon = require('express-favicon'),
 	app = express(),
 	mongo = require('mongodb'),
+	message = require('./lib/message'),
+	doc = require('./lib/doc'),
 	MongoClient = mongo.MongoClient,
 	ObjectID = mongo.ObjectID,
-	dbAddress = process.env.MONGOLAB_URI;
-	//dbAddress = 'mongodb://127.0.0.1:27017/crypto';
+	dbHost = process.env.DB_HOST || 'mongodb://127.0.0.1:27017',
+	dbName = process.env.DB_NAME || 'crypto';
 
-//Message object constructor
-function Message(text) {
-	this.text = text;
-	this.encryptedText = "";
-	this.hint = "";
-	this.burnable = true;
-	this.limited = true;
-	this.encrypt = function() {
-		var unique = [];
-		var cryptoChars = [];
-		var alphabet = ['a','b','c','d','e','f','g','h',
-						'i','j','k','l','m','n','o','p',
-						'q','r','s','t','u','v','w','x',
-						'y','z'];
-		var alphaRemaining = alphabet.slice(0);
-		for (var i = 0; i < this.text.length; i++) {
-			var c = this.text[i];
-			if(alphabet.indexOf(c) !== -1) {
-				if(unique.indexOf(c) === -1) {
-					unique.push(c);
-					var randomAlpha = alphaRemaining.splice(Math.floor(Math.random()*alphaRemaining.length),1);
-					cryptoChars.push(randomAlpha);
-				}
-				this.encryptedText += cryptoChars[unique.indexOf(c)];
-			} else {
-				this.encryptedText += c;
-			}
-		}
-		var randomHintIndex = Math.floor(Math.random()*cryptoChars.length);
-		if(cryptoChars.length>0) {
-			this.hint = cryptoChars[randomHintIndex] + " = " + unique[randomHintIndex];
-		} else {
-			this.hint = "";
-		}
-	};
-	this.createDoc = function() {
-		var doc = {};
-		doc.text = this.text;
-		doc.encryptedText = this.encryptedText;
-		doc.hint = this.hint;
-		doc.date = new Date();
-		doc.timestamp = doc.date.getTime();
-		doc.checksLeft = 3;
-		doc.allUsers = [];
-		doc.burnable = this.burnable;
-		doc.limited = this.limited;
-		return doc;
-	};
-	this.createFromDoc = function(doc) {
-		this.text = doc.text;
-		this.encryptedText = doc.encryptedText;
-		this.hint = doc.hint;
-		this.id = doc._id;
-	};
+const getMessagesCollection = callback => {
+	MongoClient.connect(dbHost, function(err, client) {
+		if(err) throw err
+		const db = client.db(dbName)
+		const collection = db.collection('messages')
+		callback(collection)
+	})
 }
 
 //Store a message in the mongo db
 function store(message, callback) {
-	MongoClient.connect(dbAddress, function(err, db) {
-		if(err) throw err;
-		var collection = db.collection('messages');
-		collection.insert(message.createDoc(), function(err,result) {
-			if(err) throw err;
+	getMessagesCollection(collection => {
+		collection.insertOne(doc(message), function(err,result) {
+			if(err) throw err
 			else if(result) {
-				message.id = result.ops[0]._id;
+				message.id = result.ops[0]._id
 			}
-			callback();
-			db.close();
+			callback()
 		});
-	});
+	})
 }
 
 //Retrieve a message from the mongo db
@@ -87,38 +41,29 @@ function retrieve(id, callback) {
 		callback(null);
 		return;
 	}
-	MongoClient.connect(dbAddress, function(err, db) {
-		if(err) throw err;
-		var collection = db.collection('messages');
+	getMessagesCollection(collection => {
 		collection.findOne({_id:id}, function(err, item) {
 			callback(item);
-			db.close();
 		});
 	});
 }
 
 //Update a message in the mongo db
 function update(query, updateCommand, callback) {
-	MongoClient.connect(dbAddress, function(err, db) {
-		if(err) throw err;
-		var collection = db.collection('messages');
+	getMessagesCollection(collection => {
 		collection.update(query,updateCommand,function(err,result) {
 			if(err) throw err;
 			callback();
-			db.close();
 		});
 	});
 }
 
 //Update a message in the mongo db and retreive its contents
 function findAndModify(query, sort, updateCommand, callback) {
-	MongoClient.connect(dbAddress, function(err, db) {
-		if(err) throw err;
-		var collection = db.collection('messages');
+	getMessagesCollection(collection => {
 		collection.findAndModify(query,sort,updateCommand,function(err,object) {
 			if(err) throw err;
 			callback(object);
-			db.close();
 		});
 	});
 }
@@ -130,12 +75,9 @@ function remove(id) {
 	} catch (e) {
 		return;
 	}
-	MongoClient.connect(dbAddress, function(err, db) {
-		if(err) throw err;
-		var collection = db.collection('messages');
+	getMessagesCollection(collection => {
 		collection.remove({'_id':id}, function(err,result) {
 			if(err) throw err;
-			db.close();
 		});
 	});
 }
@@ -147,12 +89,14 @@ function getMain(req,res) {
 
 //Handle POST /message
 function postMessage(req,res) {
-	var message = new Message(req.body.message);
-	message.encrypt();
-	message.burnable = req.body.burnable;
-	message.limited = req.body.limited;
-	store(message, function() {
-		res.json(message);
+	console.log('req.body', req.body)
+	const encryptedMessage = message({ 
+		text: req.body.message,
+		burnable: req.body.burnable,
+		limited: req.body.limited
+	});
+	store(encryptedMessage, function() {
+		res.json(encryptedMessage);
 	});
 }
 
@@ -286,7 +230,7 @@ function pageNotFound(req,res,next) {
 /*
 * Routes and middleware
 */
-app.use(express.bodyParser());
+app.use(bodyParser());
 app.get('/', getMain);
 app.get('/styles.css', getStyles);
 app.post('/message', postMessage);
@@ -296,7 +240,7 @@ app.post('/guess', postGuess);
 app.post('/check',postCheck);
 app.get('/cookies.js', getCookiesJS);
 app.get('/about', getAbout);
-app.use(express.favicon('favicon.ico'));
+app.use(favicon('favicon.ico'));
 app.use(pageNotFound);
 
 //Listen
